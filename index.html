@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TitanFlow 🚀 Automação Inteligente para o Sistema Titan</title>
+    <title>TitanSystem 🚀 Automação Inteligente para o Sistema Titan</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,16 +12,17 @@
 
     <style>
         :root {
-            --color-background: #121828;
-            --color-surface: rgba(27, 33, 51, 0.6);
-            --color-surface-solid: #1B2133;
-            --color-primary: #8A42DE;
-            --color-primary-light: #A062EA;
-            --color-secondary: #3498db;
+            /* Paleta ajustada à logo OTAMERICA (azul + verde) */
+            --color-background: #071321;
+            --color-surface: rgba(9, 35, 60, 0.7);
+            --color-surface-solid: #0b2138;
+            --color-primary: #0072c6;        /* azul principal */
+            --color-primary-light: #1990dd;  /* azul claro */
+            --color-secondary: #1ab3a5;      /* verde água */
             --color-text-primary: #FFFFFF;
-            --color-text-secondary: #a0aec0;
-            --color-success: #27ae60;
-            --color-success-hover: #229954;
+            --color-text-secondary: #9fb3c8;
+            --color-success: #1ab3a5;        /* verde à esquerda */
+            --color-success-hover: #0072c6;  /* azul à direita */
             --color-border: rgba(255, 255, 255, 0.1);
             --font-family: 'Poppins', sans-serif;
         }
@@ -52,8 +53,9 @@
             width: 100%;
             height: 100%;
             z-index: -1;
-            background: radial-gradient(circle at 10% 20%, rgba(138, 66, 222, 0.15), transparent 40%),
-                        radial-gradient(circle at 85% 80%, rgba(52, 152, 219, 0.15), transparent 40%);
+            background:
+                radial-gradient(circle at 10% 20%, rgba(26, 179, 165, 0.18), transparent 45%),
+                radial-gradient(circle at 85% 80%, rgba(0, 114, 198, 0.22), transparent 45%);
             animation: gradient-flow 25s ease-in-out infinite;
         }
 
@@ -78,7 +80,7 @@
             font-weight: 700;
             margin-bottom: 20px;
             letter-spacing: -1.5px;
-            background: linear-gradient(90deg, var(--color-primary-light), var(--color-secondary));
+            background: linear-gradient(90deg, var(--color-secondary), var(--color-primary-light)); /* verde -> azul */
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             animation: text-focus-in 1s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
@@ -98,7 +100,7 @@
 
         .cta-button {
             display: inline-block;
-            background-image: linear-gradient(90deg, var(--color-success), var(--color-success-hover));
+            background-image: linear-gradient(90deg, var(--color-success), var(--color-success-hover)); /* verde -> azul */
             color: var(--color-text-primary);
             padding: 16px 40px;
             font-size: 1.1rem;
@@ -106,14 +108,14 @@
             text-decoration: none;
             border-radius: 50px;
             transition: all 0.3s ease;
-            box-shadow: 0 5px 20px rgba(39, 174, 96, 0.3);
+            box-shadow: 0 5px 20px rgba(0, 60, 110, 0.55);
             border: none;
             cursor: pointer;
         }
 
         .cta-button:hover {
             transform: translateY(-4px) scale(1.05);
-            box-shadow: 0 10px 30px rgba(39, 174, 96, 0.4);
+            box-shadow: 0 10px 30px rgba(0, 60, 110, 0.8);
         }
         
         .section-title {
@@ -195,7 +197,7 @@
             justify-content: center;
             width: 60px;
             height: 60px;
-            background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
+            background: linear-gradient(135deg, var(--color-secondary), var(--color-primary-light)); /* verde -> azul */
             border-radius: 50%;
             margin-bottom: 25px;
         }
@@ -230,7 +232,7 @@
         .result-card .value {
             font-size: 3rem;
             font-weight: 700;
-            color: var(--color-primary);
+            color: var(--color-secondary);
             margin-bottom: 10px;
         }
         .result-card .description {
@@ -279,13 +281,6 @@
             border-top: 1px solid var(--color-border);
             color: var(--color-text-secondary);
         }
-        footer a {
-            color: inherit; 
-            font-weight: 600;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-        footer a:hover { color: var(--color-primary); }
         
         .reveal {
             opacity: 0;
@@ -311,9 +306,9 @@
     <div class="container">
         
         <header class="hero">
-            <h1><span class="rocket">🚀</span> TitanFlow</h1>
-            <p>Sua suíte de automação para o sistema Titan. Otimize seu fluxo de trabalho, reduza cliques e ganhe tempo para o que realmente importa.</p>
-            <a href="https://raw.githubusercontent.com/Heaven0016/controle-licencas/main/public/titan.user.js" class="cta-button">Instalar Versão Mais Recente</a>
+            <h1><span class="rocket">🚀</span> TitanSystem</h1>
+            <p>Sua suíte interna de automação para o sistema Titan, desenvolvida para o setor de PCM. Otimize o fluxo de trabalho, reduza cliques e ganhe tempo nas rotinas de manutenção.</p>
+            <a href="https://raw.githubusercontent.com/PCM-OT/PCM/main/titan.user.js" class="cta-button">Instalar Versão Mais Recente</a>
         </header>
 
         <main>
@@ -328,24 +323,26 @@
                 </div>
                 <div class="info-item">
                     <div class="label">Pré-requisito</div>
-                    <div class="value"><a href="https://www.tampermonkey.net/" target="_blank" rel="noopener noreferrer">Tampermonkey</a></div>
+                    <div class="value">
+                        <a href="https://www.tampermonkey.net/" target="_blank" rel="noopener noreferrer">Tampermonkey</a>
+                    </div>
                 </div>
             </section>
 
             <section id="results" class="reveal">
-                <h2 class="section-title">Resultados Expressivos</h2>
+                <h2 class="section-title">Resultados Esperados</h2>
                 <div class="results-grid">
                     <div class="result-card">
-                        <div class="value">95%</div>
-                        <p class="description">Redução média no tempo gasto em tarefas administrativas.</p>
+                        <div class="value">90%+</div>
+                        <p class="description">Redução no tempo gasto em tarefas administrativas e ajustes manuais de OS.</p>
                     </div>
                     <div class="result-card">
                         <div class="value">&lt;30s</div>
-                        <p class="description">De +10 minutos para menos de 30 segundos para atribuir equipes a 20 ordens.</p>
+                        <p class="description">Tempo para aplicar mudanças em dezenas de ordens de serviço usando o TitanSystem.</p>
                     </div>
                     <div class="result-card">
                         <div class="value">Zero</div>
-                        <p class="description">Erros operacionais em processos automatizados, garantindo consistência.</p>
+                        <p class="description">Dependência de planilhas auxiliares para ações em massa dentro do Titan.</p>
                     </div>
                 </div>
             </section>
@@ -357,25 +354,25 @@
                     <div class="feature-card">
                         <div class="icon"><i data-feather="zap"></i></div>
                         <h3>Automação em Massa</h3>
-                        <p>Execute, reprograme, ative e adicione mão de obra a dezenas de ordens de serviço com um único comando, economizando horas de trabalho manual.</p>
+                        <p>Execute, reprograme, ative e adicione mão de obra a dezenas de ordens de serviço com um único comando, economizando horas de trabalho manual do PCM.</p>
                     </div>
 
                     <div class="feature-card">
                         <div class="icon"><i data-feather="layout"></i></div>
-                        <h3>Painel de Comando Intuitivo</h3>
-                        <p>Uma interface moderna injetada diretamente na sua tela, com todas as ferramentas ao seu alcance, hotkeys e um design pensado na agilidade.</p>
+                        <h3>Painel de Comando Integrado</h3>
+                        <p>Interface moderna injetada diretamente nas telas do Titan, com ações agrupadas e foco nas rotinas do setor de PCM.</p>
                     </div>
 
                     <div class="feature-card">
                         <div class="icon"><i data-feather="edit"></i></div>
-                        <h3>Correção de "Impossíveis"</h3>
-                        <p>Altere descrições em ordens já emitidas, uma tarefa antes impossível, aproveitando brechas do sistema para manter a integridade do histórico.</p>
+                        <h3>Padronização de Ações</h3>
+                        <p>Reduz variação entre analistas, aplicando os mesmos critérios de forma automática e consistente em todas as ordens.</p>
                     </div>
 
                     <div class="feature-card">
                         <div class="icon"><i data-feather="shield"></i></div>
-                        <h3>Acesso Seguro e Controlado</h3>
-                        <p>O acesso ao script é protegido por senha e criptografia, garantindo que apenas usuários com licença ativa possam utilizar a ferramenta.</p>
+                        <h3>Acesso Controlado Internamente</h3>
+                        <p>Ferramenta de uso interno do PCM, com controle de acesso via script e gestão pelo time responsável.</p>
                     </div>
                 </div>
             </section>
@@ -387,21 +384,28 @@
                         <div class="number">1</div>
                         <div class="content">
                             <h3>Instale o Tampermonkey</h3>
-                            <p>Se você ainda não tem, instale a extensão <a href="https://www.tampermonkey.net/" target="_blank" rel="noopener noreferrer">Tampermonkey</a> para o seu navegador. É ela que gerencia e executa o nosso script.</p>
+                            <p>Se você ainda não tem, instale a extensão 
+                                <a href="https://www.tampermonkey.net/" target="_blank" rel="noopener noreferrer">Tampermonkey</a> 
+                                para o seu navegador. É ela que gerencia e executa o script do TitanSystem.
+                            </p>
                         </div>
                     </div>
                     <div class="step">
                         <div class="number">2</div>
                         <div class="content">
-                            <h3>Instale o TitanFlow</h3>
-                            <p>Clique no botão "Instalar" no topo da página ou <a href="https://raw.githubusercontent.com/Heaven0016/controle-licencas/main/public/titan.user.js">neste link direto</a>. O Tampermonkey abrirá uma nova aba. Confirme a instalação.</p>
+                            <h3>Instale o TitanSystem</h3>
+                            <p>Clique no botão "Instalar Versão Mais Recente" no topo da página ou 
+                                <a href="https://raw.githubusercontent.com/PCM-OT/PCM/main/titan.user.js" target="_blank" rel="noopener noreferrer">
+                                    neste link direto
+                                </a>. O Tampermonkey abrirá uma nova aba; confirme a instalação.
+                            </p>
                         </div>
                     </div>
                     <div class="step">
                         <div class="number">3</div>
                         <div class="content">
-                            <h3>Pronto para Decolar!</h3>
-                            <p>Acesse a página do sistema Titan. O painel do TitanSystem aparecerá automaticamente, pronto para revolucionar seu fluxo de trabalho!</p>
+                            <h3>Use no Titan</h3>
+                            <p>Acesse a página do sistema Titan. O painel do TitanSystem aparecerá automaticamente nas telas configuradas, pronto para apoiar o trabalho do PCM.</p>
                         </div>
                     </div>
                 </div>
@@ -409,7 +413,7 @@
         </main>
         
         <footer>
-            <p>Desenvolvido por PCM © 2025</p>
+            <p>Desenvolvido por PCM &mdash; Uso interno &copy; 2025</p>
         </footer>
     </div>
 
@@ -422,8 +426,8 @@
         
         async function fetchScriptVersion() {
             try {
-                const response = await fetch('titan.user.js');
-                if (!response.ok) throw new Error('Falha ao carregar o script localmente.');
+                const response = await fetch('https://raw.githubusercontent.com/PCM-OT/PCM/main/titan.user.js');
+                if (!response.ok) throw new Error('Falha ao carregar o script remoto.');
                 
                 const scriptContent = await response.text();
                 const versionMatch = scriptContent.match(/@version\s+([\d.]+)/);
@@ -442,7 +446,7 @@
         }
 
         async function fetchLatestCommitDate() {
-            const apiUrl = 'https://api.github.com/repos/Heaven0016/controle-licencas/commits?path=public/titan.user.js&per_page=1';
+            const apiUrl = 'https://api.github.com/repos/PCM-OT/PCM/commits?path=titan.user.js&per_page=1';
             
             try {
                 const response = await fetch(apiUrl);
