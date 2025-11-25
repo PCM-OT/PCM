@@ -13,8 +13,8 @@
 // @match        */albatros/admin.php*seccion=titan_planes_programacion*
 // @exclude      */albatros/admin.php*seccion=titan_trabajos_ordenes&id_reg*
 // @exclude      */albatros/admin.php*seccion=titan_trabajos_pedidos&id_reg*
-// @updateURL    https://raw.githubusercontent.com/leawm31/TitanSystem/main/public/titan.user.nolic.js
-// @downloadURL  https://raw.githubusercontent.com/leawm31/TitanSystem/main/public/titan.user.nolic.js
+// @updateURL    https://raw.githubusercontent.com/leawm31/TitanSystem/main/public/titan.user.js
+// @downloadURL  https://raw.githubusercontent.com/leawm31/TitanSystem/main/public/titan.user.js
 // @grant        GM_info
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
