@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TitanFlow 🚀 Automação Inteligente para o Sistema Titan</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <style>
+        :root {
+            --color-background: #121828;
+            --color-surface: rgba(27, 33, 51, 0.6);
+            --color-surface-solid: #1B2133;
+            --color-primary: #8A42DE;
+            --color-primary-light: #A062EA;
+            --color-secondary: #3498db;
+            --color-text-primary: #FFFFFF;
+            --color-text-secondary: #a0aec0;
+            --color-success: #27ae60;
+            --color-success-hover: #229954;
+            --color-border: rgba(255, 255, 255, 0.1);
+            --font-family: 'Poppins', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--color-background);
+            color: var(--color-text-primary);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 10% 20%, rgba(138, 66, 222, 0.15), transparent 40%),
+                        radial-gradient(circle at 85% 80%, rgba(52, 152, 219, 0.15), transparent 40%);
+            animation: gradient-flow 25s ease-in-out infinite;
+        }
+
+        @keyframes gradient-flow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .container {
+            max-width: 1024px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 100px 0;
+        }
+
+        .hero h1 {
+            font-size: 3.8rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            letter-spacing: -1.5px;
+            background: linear-gradient(90deg, var(--color-primary-light), var(--color-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: text-focus-in 1s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
+        }
+        
+        @keyframes text-focus-in {
+            0% { filter: blur(12px); opacity: 0; }
+            100% { filter: blur(0px); opacity: 1; }
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--color-text-secondary);
+            max-width: 650px;
+            margin: 0 auto 40px auto;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background-image: linear-gradient(90deg, var(--color-success), var(--color-success-hover));
+            color: var(--color-text-primary);
+            padding: 16px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(39, 174, 96, 0.3);
+            border: none;
+            cursor: pointer;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 10px 30px rgba(39, 174, 96, 0.4);
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2.8rem;
+            margin-bottom: 60px;
+            font-weight: 600;
+        }
+
+        .info-bar {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            padding: 25px;
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 15px;
+            margin: 60px 0;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .info-item { text-align: center; }
+        .info-item .label {
+            font-size: 0.9rem;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .info-item .value { font-size: 1.3rem; font-weight: 600; }
+        .info-item .value a {
+            color: var(--color-primary-light);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        .info-item .value a:hover { color: var(--color-text-primary); }
+
+        .info-item .value.loading {
+            display: inline-block;
+            width: 150px;
+            height: 1.3rem;
+            background-color: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background-color: var(--color-surface);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid var(--color-border);
+            transition: all 0.3s ease;
+            transform: translateY(0);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25);
+            border-color: var(--color-primary);
+        }
+
+        .feature-card .icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
+            border-radius: 50%;
+            margin-bottom: 25px;
+        }
+        
+        .feature-card .icon i {
+            width: 28px;
+            height: 28px;
+            color: white;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: var(--color-text-primary);
+        }
+
+        .feature-card p { color: var(--color-text-secondary); }
+
+        /* --- Seção de Resultados --- */
+        #results { margin-top: 100px; }
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+        .result-card {
+            text-align: center;
+            padding: 30px;
+            background-color: var(--color-surface-solid);
+            border-radius: 12px;
+        }
+        .result-card .value {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: 10px;
+        }
+        .result-card .description {
+            color: var(--color-text-secondary);
+            font-size: 1rem;
+        }
+
+        #installation { margin-top: 100px; }
+        .installation-steps {
+            max-width: 700px;
+            margin: 0 auto;
+            background-color: var(--color-surface-solid);
+            padding: 40px;
+            border-radius: 15px;
+        }
+        .step {
+            display: flex;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        .step:last-child { margin-bottom: 0; }
+        .step .number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            background-color: var(--color-surface);
+            min-width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .step .content h3 { font-size: 1.3rem; margin-bottom: 5px; }
+        .step .content p { color: var(--color-text-secondary); }
+        .step .content a {
+            color: var(--color-primary-light);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            margin-top: 80px;
+            border-top: 1px solid var(--color-border);
+            color: var(--color-text-secondary);
+        }
+        footer a {
+            color: inherit; 
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        footer a:hover { color: var(--color-primary); }
+        
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.8rem; }
+            .hero p { font-size: 1.1rem; }
+            .info-bar { flex-direction: column; gap: 25px; }
+            .section-title { font-size: 2.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <header class="hero">
+            <h1><span class="rocket">🚀</span> TitanFlow</h1>
+            <p>Sua suíte de automação para o sistema Titan. Otimize seu fluxo de trabalho, reduza cliques e ganhe tempo para o que realmente importa.</p>
+            <a href="https://raw.githubusercontent.com/Heaven0016/controle-licencas/main/public/titan.user.js" class="cta-button">Instalar Versão Mais Recente</a>
+        </header>
+
+        <main>
+            <section class="info-bar reveal">
+                <div class="info-item">
+                    <div class="label">Versão Atual</div>
+                    <div class="value loading" id="version-number">&nbsp;</div>
+                </div>
+                <div class="info-item">
+                    <div class="label">Última Atualização</div>
+                    <div class="value loading" id="last-updated">&nbsp;</div>
+                </div>
+                <div class="info-item">
+                    <div class="label">Pré-requisito</div>
+                    <div class="value"><a href="https://www.tampermonkey.net/" target="_blank" rel="noopener noreferrer">Tampermonkey</a></div>
+                </div>
+            </section>
+
+            <section id="results" class="reveal">
+                <h2 class="section-title">Resultados Expressivos</h2>
+                <div class="results-grid">
+                    <div class="result-card">
+                        <div class="value">95%</div>
+                        <p class="description">Redução média no tempo gasto em tarefas administrativas.</p>
+                    </div>
+                    <div class="result-card">
+                        <div class="value">&lt;30s</div>
+                        <p class="description">De +10 minutos para menos de 30 segundos para atribuir equipes a 20 ordens.</p>
+                    </div>
+                    <div class="result-card">
+                        <div class="value">Zero</div>
+                        <p class="description">Erros operacionais em processos automatizados, garantindo consistência.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="features" class="features reveal" style="margin-top: 100px;">
+                <h2 class="section-title">Funcionalidades Principais</h2>
+                <div class="features-grid">
+                    
+                    <div class="feature-card">
+                        <div class="icon"><i data-feather="zap"></i></div>
+                        <h3>Automação em Massa</h3>
+                        <p>Execute, reprograme, ative e adicione mão de obra a dezenas de ordens de serviço com um único comando, economizando horas de trabalho manual.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="icon"><i data-feather="layout"></i></div>
+                        <h3>Painel de Comando Intuitivo</h3>
+                        <p>Uma interface moderna injetada diretamente na sua tela, com todas as ferramentas ao seu alcance, hotkeys e um design pensado na agilidade.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="icon"><i data-feather="edit"></i></div>
+                        <h3>Correção de "Impossíveis"</h3>
+                        <p>Altere descrições em ordens já emitidas, uma tarefa antes impossível, aproveitando brechas do sistema para manter a integridade do histórico.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="icon"><i data-feather="shield"></i></div>
+                        <h3>Acesso Seguro e Controlado</h3>
+                        <p>O acesso ao script é protegido por senha e criptografia, garantindo que apenas usuários com licença ativa possam utilizar a ferramenta.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="installation" class="reveal">
+                <h2 class="section-title">Instalação Passo a Passo</h2>
+                <div class="installation-steps">
+                    <div class="step">
+                        <div class="number">1</div>
+                        <div class="content">
+                            <h3>Instale o Tampermonkey</h3>
+                            <p>Se você ainda não tem, instale a extensão <a href="https://www.tampermonkey.net/" target="_blank" rel="noopener noreferrer">Tampermonkey</a> para o seu navegador. É ela que gerencia e executa o nosso script.</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="number">2</div>
+                        <div class="content">
+                            <h3>Instale o TitanFlow</h3>
+                            <p>Clique no botão "Instalar" no topo da página ou <a href="https://raw.githubusercontent.com/Heaven0016/controle-licencas/main/public/titan.user.js">neste link direto</a>. O Tampermonkey abrirá uma nova aba. Confirme a instalação.</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="number">3</div>
+                        <div class="content">
+                            <h3>Pronto para Decolar!</h3>
+                            <p>Acesse a página do sistema Titan. O painel do TitanFlow aparecerá automaticamente, pronto para revolucionar seu fluxo de trabalho!</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <footer>
+            <p>Desenvolvido por <a href="https://www.linkedin.com/in/ryangomes0016" target="_blank" rel="noopener noreferrer">Ryan Gomes</a> © 2025</p>
+        </footer>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        feather.replace();
+
+        const versionEl = document.getElementById('version-number');
+        const updatedEl = document.getElementById('last-updated');
+        
+        async function fetchScriptVersion() {
+            try {
+                const response = await fetch('titan.user.js');
+                if (!response.ok) throw new Error('Falha ao carregar o script localmente.');
+                
+                const scriptContent = await response.text();
+                const versionMatch = scriptContent.match(/@version\s+([\d.]+)/);
+                
+                if (versionMatch && versionMatch[1]) {
+                    versionEl.textContent = `v${versionMatch[1]}`;
+                    versionEl.classList.remove('loading');
+                } else {
+                    throw new Error('Tag @version não encontrada.');
+                }
+            } catch (error) {
+                console.error("Erro ao buscar a versão do script:", error);
+                versionEl.textContent = 'Indisponível';
+                versionEl.classList.remove('loading');
+            }
+        }
+
+        async function fetchLatestCommitDate() {
+            const apiUrl = 'https://api.github.com/repos/Heaven0016/controle-licencas/commits?path=public/titan.user.js&per_page=1';
+            
+            try {
+                const response = await fetch(apiUrl);
+                 if (!response.ok) {
+                    throw new Error(`Erro na API do GitHub! Status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                if (data && data.length > 0 && data[0].commit.committer.date) {
+                    const commitDate = new Date(data[0].commit.committer.date);
+                    updatedEl.textContent = commitDate.toLocaleDateString('pt-BR', {
+                        day: '2-digit',
+                        month: 'long',
+                        year: 'numeric'
+                    });
+                    updatedEl.classList.remove('loading');
+                } else {
+                    throw new Error('A resposta da API não continha a data do commit.');
+                }
+            } catch (error) {
+                console.error("Erro ao buscar data de atualização no GitHub:", error);
+                updatedEl.textContent = 'Indisponível';
+                updatedEl.classList.remove('loading');
+            }
+        }
+
+        function revealOnScroll() {
+            const reveals = document.querySelectorAll('.reveal');
+            const windowHeight = window.innerHeight;
+
+            reveals.forEach(element => {
+                const elementTop = element.getBoundingClientRect().top;
+                if (elementTop < windowHeight - 100) {
+                    element.classList.add('visible');
+                }
+            });
+        }
+        
+        fetchScriptVersion();
+        fetchLatestCommitDate();
+        window.addEventListener('scroll', revealOnScroll);
+        revealOnScroll();
+    });
+    </script>
+</body>
+</html>
