@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TitanSystem 🚀
 // @namespace    http://tampermonkey.net/
-// @version      160.2
+// @version      2.0
 // @description  Otimiza e automatiza o fluxo de trabalho de Ordens de Serviço no sistema Titan, desde a criação até o fechamento.
 // @author       PCM
 // @run-at       document-idle
