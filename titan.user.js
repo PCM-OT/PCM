@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         TitanSystem 🚀
+// @name         TitanSystem testes
 // @namespace    http://tampermonkey.net/
 // @version      5.0
 // @description  Otimiza e automatiza o fluxo de trabalho de Ordens de Serviço no sistema Titan, desde a criação até o fechamento.
@@ -5570,17 +5570,144 @@ if (campoTipo && campoTipo.parentNode && campoTipo.parentNode.parentNode) {
       });
     }
 
-    function _0x564a29(_0x523641, _0x3108c5) {
-      const _0x393586 = _0x1f2edc;
-      GM_addStyle(_0x393586(0x4a7));
-      const _0x59d667 = GM_info[_0x393586(0x5ed)][_0x393586(0x325)]
-        , _0x211edb = document[_0x393586(0x4a9)]('div');
-      _0x211edb['className'] = 'titanflow-update-overlay', _0x211edb[_0x393586(0x417)] = '\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22titanflow-update-popup\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22popup-header\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22icon\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<svg\x20xmlns=\x22http://www.w3.org/2000/svg\x22\x20width=\x2240\x22\x20height=\x2240\x22\x20viewBox=\x220\x200\x2024\x2024\x22\x20fill=\x22none\x22\x20stroke=\x22currentColor\x22\x20stroke-width=\x222\x22\x20stroke-linecap=\x22round\x22\x20stroke-linejoin=\x22round\x22><path\x20d=\x22M21.44\x2011.05l-9.19\x209.19a6\x206\x200\x200\x201-8.49-8.49l9.19-9.19a4\x204\x200\x200\x201\x205.66\x205.66l-9.2\x209.19a2\x202\x200\x200\x201-2.83-2.83l8.49-8.48\x22/></svg>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<h3>Atualização\x20Disponível!</h3>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22popup-body\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<p>Uma\x20nova\x20versão\x20do\x20TitanSystem\x20está\x20pronta\x20para\x20ser\x20instalada.</p>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22version-info\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20Sua\x20versão:\x20<b>' + _0x59d667 + _0x393586(0x6a1) + _0x523641 + _0x393586(0x4d7) + _0x3108c5 + _0x393586(0x18a), document[_0x393586(0x4c5)][_0x393586(0x5a0)](_0x211edb);
-      const _0x3e0e96 = () => document[_0x393586(0x4c5)][_0x393586(0xfd)](_0x211edb) && document[_0x393586(0x4c5)][_0x393586(0x1d5)](_0x211edb);
-      _0x211edb[_0x393586(0x667)](_0x393586(0x502))['onclick'] = _0x3e0e96, _0x211edb[_0x393586(0x5fc)](_0x393586(0x338), _0x1b5f58 => {
-        const _0x2f7da3 = _0x393586;
-        _0x1b5f58[_0x2f7da3(0x354)] === _0x211edb && _0x3e0e96();
-      });
+   // --- FUNÇÃO DE ATUALIZAÇÃO (VISUAL NOVO: DARK/PREMIUM) ---
+    function _0x564a29(novaVersao, urlDownload) {
+        // 1. CSS do Novo Design (Injetado)
+        const styles = `
+            .titanflow-update-overlay {
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background-color: rgba(2, 6, 23, 0.85); /* Fundo escuro profundo */
+                backdrop-filter: blur(8px); /* Desfoque no fundo */
+                z-index: 10003;
+                display: flex; justify-content: center; align-items: center;
+                font-family: 'Poppins', sans-serif;
+                animation: fadeIn 0.3s ease-out;
+            }
+            .titanflow-update-card {
+                background: linear-gradient(180deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(59, 130, 246, 0.15);
+                border-radius: 20px;
+                width: 90%; max-width: 450px;
+                overflow: hidden;
+                position: relative;
+                color: #f8fafc;
+                text-align: center;
+            }
+            /* Borda brilhante no topo */
+            .titanflow-update-card::before {
+                content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+                background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.5), transparent);
+            }
+            .update-header {
+                padding: 30px 20px 10px;
+            }
+            .update-icon {
+                width: 60px; height: 60px;
+                background: rgba(59, 130, 246, 0.1);
+                border-radius: 50%;
+                display: flex; align-items: center; justify-content: center;
+                margin: 0 auto 20px;
+                border: 1px solid rgba(59, 130, 246, 0.3);
+                box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+                color: #3b82f6;
+            }
+            .update-title {
+                font-size: 1.8rem; font-weight: 700; margin: 0;
+                background: linear-gradient(90deg, #14b8a6 0%, #3b82f6 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+            .update-body { padding: 10px 30px 20px; }
+            .update-text { font-size: 1rem; color: #94a3b8; line-height: 1.6; margin-bottom: 20px; }
+
+            .version-pill {
+                display: inline-block; padding: 6px 16px;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 50px;
+                font-size: 0.9rem; color: #e2e8f0;
+                margin-bottom: 10px;
+            }
+            .version-highlight { color: #14b8a6; font-weight: 700; }
+
+            .update-actions {
+                padding: 20px 30px 30px;
+                display: flex; gap: 15px;
+                border-top: 1px solid rgba(255, 255, 255, 0.05);
+            }
+            .btn-update-action {
+                flex: 1; padding: 12px; border-radius: 10px;
+                font-weight: 600; cursor: pointer; border: none;
+                font-size: 0.95rem; transition: all 0.2s ease;
+                text-decoration: none; display: flex; justify-content: center; align-items: center;
+            }
+            .btn-later {
+                background: transparent; color: #94a3b8;
+                border: 1px solid rgba(148, 163, 184, 0.2);
+            }
+            .btn-later:hover { background: rgba(255, 255, 255, 0.05); color: #fff; }
+
+            .btn-now {
+                background: linear-gradient(90deg, #14b8a6, #3b82f6);
+                color: white;
+                box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+            }
+            .btn-now:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5);
+            }
+
+            @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        `;
+        GM_addStyle(styles);
+
+        // 2. Estrutura HTML do Novo Design
+        const overlay = document.createElement('div');
+        overlay.className = 'titanflow-update-overlay';
+
+        const cardHTML = `
+            <div class="titanflow-update-card">
+                <div class="update-header">
+                    <div class="update-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path><line x1="21" y1="5" x2="12.5" y2="13.5"></line></svg>
+                    </div>
+                    <h2 class="update-title">Atualização Disponível</h2>
+                </div>
+
+                <div class="update-body">
+                    <p class="update-text">Uma nova versão do <strong>TitanSystem</strong> foi lançada com melhorias de performance e novos recursos.</p>
+                    <div class="version-pill">
+                        Nova Versão: <span class="version-highlight">v${novaVersao}</span>
+                    </div>
+                </div>
+
+                <div class="update-actions">
+                    <button class="btn-update-action btn-later close-button">Depois</button>
+                    <a href="${urlDownload}" target="_blank" class="btn-update-action btn-now">
+                        🚀 Atualizar Agora
+                    </a>
+                </div>
+            </div>
+        `;
+
+        overlay.innerHTML = cardHTML;
+        document.body.appendChild(overlay);
+
+        // 3. Lógica de Fechamento
+        const closeBtn = overlay.querySelector('.close-button');
+        const removeOverlay = () => {
+            overlay.style.opacity = '0';
+            overlay.style.transition = 'opacity 0.3s ease';
+            setTimeout(() => {
+                if(document.body.contains(overlay)) document.body.removeChild(overlay);
+            }, 300);
+        };
+
+        closeBtn.onclick = removeOverlay;
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) removeOverlay();
+        });
     }
 
     function _0x2fd0e7() {
