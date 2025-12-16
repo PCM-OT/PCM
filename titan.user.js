@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TitanSystem 🚀
 // @namespace    http://tampermonkey.net/
-// @version      7.0
+// @version      7.1
 // @description  Otimiza e automatiza o fluxo de trabalho de Ordens de Serviço no sistema Titan, desde a criação até o fechamento.
 // @author       PCM - OTAMERICA
 // @run-at       document-idle
@@ -624,7 +624,7 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
             alert('Erro ao processar tabelas: ' + e.message);
         }
 
-        if(btn) { btn.innerHTML = '🔄 Atualizar Lista'; btn.disabled = false; }
+        if(btn) { btn.innerHTML = '🔄 Atualizar Listas'; btn.disabled = false; }
     }
     // --- FIM DA ETAPA 1 ---
     let _0x2b7552 = []
@@ -3021,6 +3021,22 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
           _0x14ddf1.style.boxShadow = 'none';
       };
 
+        // Solta o Clique: Volta para cima (estado de Hover)
+            _0x14ddf1.onmouseup = () => {
+                _0x14ddf1.style.transform = 'translateY(-2px)';
+                _0x14ddf1.style.boxShadow = '0 4px 8px rgba(0,0,0,0.25)';
+            };
+
+            // Ação Final
+            _0x14ddf1.onclick = () => {
+                _0x2db1a3.tecnicos = [];
+                _0x2db1a3.empresas = [];
+                _0x13dd7d();
+                compPessoas.renderizar();
+                compEmpresas.renderizar();
+                _0x2786ff('Seleção limpa.', 'success');
+            };
+
       // --- AÇÃO AO CLICAR (DIRETO, SEM PERGUNTAR) ---
       _0x14ddf1.onclick = () => {
           // 1. Zera a lista na memória imediatamente
@@ -3068,7 +3084,7 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
           // Título
           const lbl = document.createElement('div');
           lbl.innerHTML = `<b>${titulo}</b>`;
-          lbl.style.fontSize = '11px';
+          lbl.style.fontSize = '13px';
           lbl.style.marginBottom = '3px';
           lbl.style.color = '#333';
           wrapper.appendChild(lbl);
@@ -3082,7 +3098,7 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
               marginBottom: '3px',
               border: '1px solid #ccc',
               borderRadius: '4px',
-              fontSize: '11px',
+              fontSize: '12px',
               boxSizing: 'border-box' // Importante para não quebrar o layout lado a lado
           });
 
@@ -3134,7 +3150,7 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
 
                   const texto = document.createElement('span');
                   texto.innerText = item.nome;
-                  texto.style.fontSize = '10px'; // Fonte menor para caber melhor
+                  texto.style.fontSize = '12px'; // Fonte menor para caber melhor
                   texto.style.cursor = 'pointer';
                   texto.style.flex = '1';
                   texto.style.whiteSpace = 'nowrap'; // Evita quebra de linha feia
@@ -3263,28 +3279,64 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
             _0xTituloLabel.textContent = 'Seleção de Recursos:';
             Object.assign(_0xTituloLabel.style, {
                 'margin': '0',
-                'fontSize': '12px',
+                'fontSize': '15px',
                 'color': '#333',
                 'fontWeight': 'bold'
             });
 
-            // 3. CRIA O BOTÃO DE ATUALIZAR
+            // 3. CRIA O BOTÃO DE ATUALIZAR (COM EFEITOS VISUAIS)
             const _0xBtnUpdate = document.createElement('button');
             _0xBtnUpdate.id = 'btn-update-tecnicos';
-            _0xBtnUpdate.innerHTML = '🔄 Atualizar Lista';
-            _0xBtnUpdate.title = 'Buscar nomes atuais do sistema Titan';
+            _0xBtnUpdate.innerHTML = '🔄 Atualizar Listas';
+            _0xBtnUpdate.title = 'Buscar recursos atuais do sistema Titan';
+
+            // Estilos Base (Iniciais)
             Object.assign(_0xBtnUpdate.style, {
-                'backgroundColor': '#17a2b8',
+                'backgroundColor': '#800000', // Cor Teal
                 'color': 'white',
                 'border': 'none',
                 'borderRadius': '4px',
-                'padding': '2px 8px',
+                'padding': '4px 8px',
                 'cursor': 'pointer',
                 'fontSize': '11px',
-                'transition': 'all 0.2s'
+                'fontWeight': 'bold',
+                'boxShadow': '0 2px 4px rgba(0,0,0,0.15)', // Sombra inicial
+                'transition': 'transform 0.1s ease, filter 0.2s ease, box-shadow 0.2s ease' // Animação suave
             });
 
-            // Conecta à função da Etapa 1
+            // Efeito: Mouse entra (Levanta e Brilha)
+            _0xBtnUpdate.onmouseenter = () => {
+                _0xBtnUpdate.style.transform = 'translateY(-2px)';
+                _0xBtnUpdate.style.filter = 'brightness(115%)';
+                _0xBtnUpdate.style.boxShadow = '0 4px 8px rgba(0,0,0,0.25)';
+            };
+
+            // Efeito: Mouse sai (Volta ao normal)
+            _0xBtnUpdate.onmouseleave = () => {
+                _0xBtnUpdate.style.transform = 'translateY(0)';
+                _0xBtnUpdate.style.filter = 'brightness(100%)';
+                _0xBtnUpdate.style.boxShadow = '0 2px 4px rgba(0,0,0,0.15)';
+            };
+
+            // Efeito: Clique (Afunda)
+            _0xBtnUpdate.onmousedown = () => {
+                _0xBtnUpdate.style.transform = 'translateY(1px)';
+                _0xBtnUpdate.style.boxShadow = 'none';
+            };
+
+            // Solta o Clique: Volta para cima (estado de Hover)
+            _0xBtnUpdate.onmouseup = () => {
+                _0xBtnUpdate.style.transform = 'translateY(-2px)';
+                _0xBtnUpdate.style.boxShadow = '0 4px 8px rgba(0,0,0,0.25)';
+            };
+
+            // Ação Final
+            _0xBtnUpdate.onclick = (e) => {
+                e.preventDefault();
+                _0xAtualizarTecnicosReais();
+            };
+
+            // Conecta à função de atualização
             _0xBtnUpdate.onclick = (e) => {
                 e.preventDefault();
                 _0xAtualizarTecnicosReais();
