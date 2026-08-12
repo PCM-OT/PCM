@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TitanSystem 🚀
 // @namespace    http://tampermonkey.net/
-// @version      7.6
+// @version      7.7
 // @description  Otimiza e automatiza o fluxo de trabalho de Ordens de Serviço no sistema Titan, desde a criação até o fechamento.
 // @author       PCM - OTAMERICA
 // @run-at       document-idle
@@ -11,6 +11,7 @@
 // @exclude      */albatros/admin.php*seccion=titan_planes_programacion&id_reg*
 // @match        */albatros/admin.php*seccion=titan_planes_de_mantenimiento*
 // @match        */albatros/admin.php*seccion=titan_planes_programacion*
+// @match        */albatros/admin.php*seccion=titan_equipos*
 // @exclude      */albatros/admin.php*seccion=titan_trabajos_ordenes&id_reg*
 // @exclude      */albatros/admin.php*seccion=titan_trabajos_pedidos&id_reg*
 // @updateURL    https://raw.githubusercontent.com/PCM-OT/PCM/main/titan.user.js
@@ -57,6 +58,23 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
   'use strict';
   const _0x2255fb = _0x3bcd;
   history[_0x2255fb(0x1ae)](null, '', window[_0x2255fb(0x298)]['href']);
+
+  // Página de Equipamentos: o TitanSystem não atua aqui. Só corrige as
+  // funções de navegação do TITAN, que montam a URL com '&amp;' literal e
+  // deixam a tela branca ao clicar em 'remover', e encerra em seguida —
+  // sem autenticação, sem painel, sem estilos.
+  if (new URLSearchParams(window.location.search).get('seccion') === 'titan_equipos') {
+    try {
+      const _correcao = document.createElement('script');
+      _correcao.textContent = '\n            (function () {\n                \'use strict\';\n                var ALVOS = [\'ejecutar_accion\', \'ejecutar_accion_via_subseccion\', \'ejecutar_accion_via_subseccion_newop\'];\n                var corrigidas = [];\n                function tentar() {\n                    var achouAlguma = false;\n                    for (var i = 0; i < ALVOS.length; i++) {\n                        var nome = ALVOS[i];\n                        var fn = window[nome];\n                        if (typeof fn !== \'function\') continue;\n                        achouAlguma = true;\n                        if (corrigidas.indexOf(nome) !== -1) continue;\n                        var fonte = fn.toString();\n                        if (fonte.indexOf(\'&amp;\') === -1) { corrigidas.push(nome); continue; }\n                        try {\n                            window[nome] = new Function(\'return (\' + fonte.split(\'&amp;\').join(\'&\') + \')\')();\n                            corrigidas.push(nome);\n                            console.log(\'[TitanSystem] \' + nome + \': URL corrigida (&amp; -> &).\');\n                        } catch (e) {\n                            console.error(\'[TitanSystem] falha ao corrigir \' + nome + \':\', e);\n                        }\n                    }\n                    return achouAlguma;\n                }\n                if (!tentar()) {\n                    var voltas = 0;\n                    var t = setInterval(function () {\n                        voltas++;\n                        if (tentar() || voltas > 100) clearInterval(t);\n                    }, 50);\n                }\n            })();\n        ';
+      (document.head || document.documentElement).appendChild(_correcao);
+      _correcao.remove();
+    } catch (_e) {
+      console.error('[TitanSystem] falha ao injetar a correção de URL em Equipamentos:', _e);
+    }
+    return;
+  }
+
 
   function _0x8dd5d2() {
     const _0x176da0 = _0x2255fb;
