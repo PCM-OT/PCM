@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TitanSystem 🚀
 // @namespace    http://tampermonkey.net/
-// @version      7.3
+// @version      7.4
 // @description  Otimiza e automatiza o fluxo de trabalho de Ordens de Serviço no sistema Titan, desde a criação até o fechamento.
 // @author       PCM - OTAMERICA
 // @run-at       document-idle
@@ -1683,9 +1683,22 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
             , 'titanflow-key__planes_de_mantenimiento_equipos_condiciones__id': _0x60cd88(0x2c8), 'titanflow-key__trabajos_tipos_propositos__id': 'Prop\u00f3sito'
           };
         for (const _0x39c167 in _0x2ff545) {
-          if (!document[_0x60cd88(0x405)](_0x39c167)[_0x60cd88(0x554)]) {
-            _0x2786ff(_0x60cd88(0x588) + _0x2ff545[_0x39c167] + _0x60cd88(0x57b), _0x60cd88(0x5fb));
-            throw new Error('Campo\x20obrigatório\x20não\x20preenchido.');
+          const _campo = document.getElementById(_0x39c167);
+          if (!_campo) {
+            _0x2786ff('Erro interno: o campo "' + _0x2ff545[_0x39c167] + '" n\u00e3o existe no painel (' + _0x39c167 + '). Recarregue a p\u00e1gina; se persistir, avise o PCM.', 'error', 10000);
+            throw new Error('Campo ausente no painel: ' + _0x39c167);
+          }
+          if (!_campo.value) {
+            _0x2786ff('Erro: O campo "' + _0x2ff545[_0x39c167] + '" \u00e9 obrigat\u00f3rio.', 'error', 8000);
+            try {
+              _campo.scrollIntoView({ block: 'center', behavior: 'smooth' });
+              const _contorno = _campo.style.outline;
+              _campo.style.outline = '3px solid #e74c3c';
+              _campo.style.outlineOffset = '2px';
+              setTimeout(function () { _campo.style.outline = _contorno; _campo.style.outlineOffset = ''; }, 4000);
+              _campo.focus({ preventScroll: true });
+            } catch (_e) {}
+            throw new Error('Campo obrigat\u00f3rio n\u00e3o preenchido: ' + _0x39c167);
           }
         }
         if (!document[_0x60cd88(0x405)](_0x60cd88(0x34a))['value']) {
