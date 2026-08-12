@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TitanSystem 🚀
 // @namespace    http://tampermonkey.net/
-// @version      7.4
+// @version      7.5
 // @description  Otimiza e automatiza o fluxo de trabalho de Ordens de Serviço no sistema Titan, desde a criação até o fechamento.
 // @author       PCM - OTAMERICA
 // @run-at       document-idle
@@ -1705,7 +1705,8 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
           _0x2786ff('Erro:\x20Pelo\x20menos\x20a\x20\x22Especialidade\x201\x22\x20deve\x20ser\x20selecionada.', _0x60cd88(0x5fb));
           throw new Error('Especialidade\x201\x20não\x20selecionada.');
         }
-        botaoClicado['disabled'] = !![];
+        const _botaoCriarPlano = document.getElementById('btn-criar-plano');
+        if (_botaoCriarPlano) _botaoCriarPlano.disabled = true;
         const _0x17f743 = {
           'nome': document[_0x60cd88(0x405)](_0x60cd88(0x63b))['value']
           , 'tipoTrabalho': document['getElementById']('titanflow-key__trabajos_tipos__id')['value']
@@ -1740,7 +1741,7 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
           if (_0x1a7762) _0x1a7762((_0x438aeb + 0x1) / _0x396c11);
         }
         const _0x26a075 = _0x60cd88(0x65c) + (_0x396c11 - _0x25a2ed) + _0x60cd88(0x266) + _0x25a2ed + _0x60cd88(0x173);
-        _0x1241ed(_0x26a075, 0x1388), botaoClicado[_0x60cd88(0x4e8)] = ![];
+        _0x1241ed(_0x26a075, 0x1388), _botaoCriarPlano && (_botaoCriarPlano.disabled = false);
         if (_0x25a2ed === 0x0 && _0x396c11 > 0x0) setTimeout(() => location[_0x60cd88(0x683)](), 0x5dc);
         else _0x25a2ed > 0x0 && _0x2786ff(_0x60cd88(0x681), _0x60cd88(0x65a), 0x1770);
       }
