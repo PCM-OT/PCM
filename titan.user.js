@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TitanSystem 🚀
 // @namespace    http://tampermonkey.net/
-// @version      7.8
+// @version      7.9
 // @description  Otimiza e automatiza o fluxo de trabalho de Ordens de Serviço no sistema Titan, desde a criação até o fechamento.
 // @author       PCM - OTAMERICA
 // @run-at       document-idle
@@ -1113,21 +1113,31 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
 
 
     // ===== Painel próprio da página de Equipamentos (só administrador) =====
+    // Mesma posição, cores e mecânica de mostrar/ocultar do painel de
+    // Planejamento (#painel-planejamento / titanflow-toggle-planejamento-btn),
+    // para o TitanSystem parecer um só sistema em qualquer tela do TITAN.
     async function _painelEquipamentos() {
       if (document.getElementById('painel-equipamentos')) return;
 
       GM_addStyle(
-        '#painel-equipamentos { position: fixed; top: 80px; right: 20px; width: 430px; max-height: 82vh;' +
-        ' overflow-y: auto; background: #fff; border-radius: 10px; padding: 15px; z-index: 10001;' +
-        ' box-shadow: 0 5px 20px rgba(0,0,0,0.2); font-family: "Segoe UI", Arial, sans-serif; }' +
+        '#painel-equipamentos { position: fixed; top: 40px; left: 10px; width: 480px;' +
+        ' background-color: #f0f0f0; border: 1px solid #3366ff; border-radius: 8px; padding: 15px;' +
+        ' z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.15);' +
+        ' font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }' +
         '#painel-equipamentos .titanflow-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }' +
         '#painel-equipamentos .titanflow-full-width { grid-column: 1 / -1; }' +
         '#painel-equipamentos label { display: block; font-weight: 600; font-size: 13px; color: #333; margin-bottom: 5px; }' +
         '#painel-equipamentos input, #painel-equipamentos select, #painel-equipamentos textarea {' +
-        ' width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 13px; }' +
+        ' width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }' +
+        '#painel-equipamentos input:disabled { background-color: #e9ecef; cursor: not-allowed; }' +
         '#painel-equipamentos .titanflow-titulo-secao { font-size: 16px; font-weight: bold; color: #3366ff;' +
-        ' border-bottom: 2px solid #e9ecef; padding-bottom: 8px; margin: 10px 0; grid-column: 1 / -1;' +
+        ' border-bottom: 2px solid #e9ecef; padding-bottom: 8px; margin: 15px 0 10px 0; grid-column: 1 / -1;' +
         ' display: flex; justify-content: space-between; align-items: center; }' +
+        '.titanflow-tab-container { display: flex; gap: 2px; margin-bottom: 10px; }' +
+        '.titanflow-tab-btn { background-color: #6c757d; color: white; border: none; padding: 8px 12px;' +
+        ' border-radius: 5px; cursor: pointer; font-weight: bold; transition: all 0.2s ease;' +
+        ' box-shadow: 0 2px 4px rgba(0,0,0,0.15); }' +
+        '.titanflow-tab-btn.active { background-color: #3366ff; transform: translateY(-2px); }' +
         '#painel-equipamentos .eq-linha { display: flex; align-items: center; gap: 8px; padding: 4px 2px;' +
         ' border-bottom: 1px solid #f0f0f0; font-size: 12px; }' +
         '#painel-equipamentos .eq-linha input[type=checkbox] { width: auto; margin: 0; }' +
@@ -1140,13 +1150,10 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
       _p.id = 'painel-equipamentos';
       _p.innerHTML =
         '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">' +
-          '<h3 style="color:#3366ff; margin:0; font-size:16px;">TitanSystem Equipamentos \u{1F527}</h3>' +
-          '<div style="display:flex; align-items:center; gap:8px;">' +
-            '<span style="font-size:12px; color:#888;">v' + GM_info.script.version + '</span>' +
-            '<button id="eq-fechar" title="Ocultar" style="background:none;border:none;font-size:18px;cursor:pointer;">\u00d7</button>' +
-          '</div>' +
+          '<h3 style="color:#3366ff; margin:0;">TitanSystem Equipamentos \u{1F527}</h3>' +
+          '<span style="font-size:12px; color:#888;">v' + GM_info.script.version + '</span>' +
         '</div>' +
-        '<div class="titanflow-tab-container" style="display:flex; gap:2px; margin-bottom:10px;">' +
+        '<div class="titanflow-tab-container">' +
           '<button id="eq-tab-criar" class="titanflow-tab-btn">Criar</button>' +
           '<button id="eq-tab-baixa" class="titanflow-tab-btn">Baixa</button>' +
         '</div>' +
@@ -1156,7 +1163,6 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
       const _cont = document.getElementById('eq-conteudo');
       const _btCriar = document.getElementById('eq-tab-criar');
       const _btBaixa = document.getElementById('eq-tab-baixa');
-      document.getElementById('eq-fechar').onclick = () => { _p.style.display = 'none'; };
 
       const _abrir = async (qual) => {
         _btCriar.classList.toggle('active', qual === 'criar');
@@ -1168,6 +1174,46 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
       _btCriar.onclick = () => _abrir('criar');
       _btBaixa.onclick = () => _abrir('baixa');
       await _abrir(localStorage.getItem('titanflow_equip_ultima_aba') || 'criar');
+
+      _criarBotaoAlternarEquipamentos();
+    }
+
+    // Réplica do botão flutuante do painel de Planejamento (mesma posição,
+    // mesmas cores por estado, mesmo texto), para esconder/mostrar o painel
+    // de Equipamentos com a mesma mecânica em toda a aplicação.
+    function _criarBotaoAlternarEquipamentos() {
+      if (document.getElementById('titanflow-toggle-equipamentos-btn')) return;
+      const _btn = document.createElement('button');
+      _btn.id = 'titanflow-toggle-equipamentos-btn';
+      Object.assign(_btn.style, {
+        position: 'fixed', top: '10px', left: '10px', color: 'white', border: 'none',
+        borderRadius: '5px', padding: '6px 12px', cursor: 'pointer', zIndex: '10000',
+        fontWeight: 'bold', fontSize: '13px', boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
+        transition: 'all 0.2s ease'
+      });
+      _btn.addEventListener('mouseenter', () => {
+        _btn.style.transform = 'translateY(-2px)'; _btn.style.filter = 'brightness(110%)';
+      });
+      _btn.addEventListener('mouseleave', () => {
+        _btn.style.transform = 'translateY(0px)'; _btn.style.filter = 'brightness(100%)';
+      });
+      const _painel = document.getElementById('painel-equipamentos');
+      const _atualizar = () => {
+        if (_painel.style.display === 'none') {
+          _btn.innerHTML = '\u{1F441}\uFE0F Mostrar Painel'; _btn.style.backgroundColor = '#28a745';
+        } else {
+          _btn.innerHTML = '\u{1F648} Ocultar Painel'; _btn.style.backgroundColor = '#3366ff';
+        }
+      };
+      _btn.onclick = () => {
+        const _oculto = _painel.style.display === 'none';
+        _painel.style.display = _oculto ? 'block' : 'none';
+        localStorage.setItem('titanflow_equip_painel_visivel', _oculto ? 'true' : 'false');
+        _atualizar();
+      };
+      document.body.appendChild(_btn);
+      if (localStorage.getItem('titanflow_equip_painel_visivel') === 'false') _painel.style.display = 'none';
+      _atualizar();
     }
 
     // Lê as linhas da tabela de resultados da página de Equipamentos.
