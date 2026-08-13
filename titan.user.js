@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TitanSystem 🚀
 // @namespace    http://tampermonkey.net/
-// @version      7.7
+// @version      7.8
 // @description  Otimiza e automatiza o fluxo de trabalho de Ordens de Serviço no sistema Titan, desde a criação até o fechamento.
 // @author       PCM - OTAMERICA
 // @run-at       document-idle
@@ -72,7 +72,6 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
     } catch (_e) {
       console.error('[TitanSystem] falha ao injetar a correção de URL em Equipamentos:', _e);
     }
-    return;
   }
 
 
@@ -716,6 +715,14 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
 
     function _0x493e8f() {
       const _0x530142 = _0x1f2edc;
+      // A página de Equipamentos não compartilha nada do fluxo de Ordens e
+      // Planos: lá mostrar_acciones_disponibles tem outra assinatura e as
+      // verificações de mão de obra e parte borrador não existem. Por isso
+      // ela tem caminho próprio, e só para administrador.
+      if (new URLSearchParams(window.location.search).get('seccion') === 'titan_equipos') {
+        if (_0x4458b3 === 'administrador') { _0x56ca07(); _painelEquipamentos(); }
+        return;
+      }
       _0x3b4bec(), _0x365d4e(), _0x2dff9d(), _0x56ca07();
       const _0xfad1a6 = new URLSearchParams(window[_0x530142(0x298)][_0x530142(0x467)])
         , _0xac3e73 = _0xfad1a6[_0x530142(0x47f)](_0x530142(0x427));
@@ -893,6 +900,421 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
         console[_0x80b7b0(0x5fb)](_0x80b7b0(0x640), _0x53935e);
         if (_0x23f598) _0x23f598[_0x80b7b0(0x39e)]['visibility'] = _0x80b7b0(0x164);
       }
+    }
+
+
+    // ===== Aba "Equipamentos": criação de equipamentos =====================
+      // Espelha o formulário nativo (titan_equipos&op=a) num iframe oculto:
+      // as listas saem dele e o envio é feito por ele, então a cascata
+      // Categoria->Classe continua sendo a do TITAN e nunca desatualiza.
+      async function _abaEquipamentos(_cont) {
+        const _urlForm = '/albatros/admin.php?SESID=' + _0x2012f5() +
+          '&seccion=titan_equipos&op=a&in=10&n2=202&n1=200';
+
+        _cont.innerHTML =
+          '<div class="titanflow-grid">' +
+            '<div class="titanflow-titulo-secao"><span>Novo Equipamento</span>' +
+              '<button id="titanflow-equip-limpar" title="Limpar todos os campos">\u{1F9F9} Limpar</button></div>' +
+            '<div><label for="titanflow-equip-tag">Tag:</label><input type="text" id="titanflow-equip-tag" placeholder="Ex: BP-1001"></div>' +
+            '<div><label for="titanflow-equip-nombre">Nome:</label><input type="text" id="titanflow-equip-nombre" placeholder="Nome do equipamento"></div>' +
+            '<div><label for="titanflow-equip-cat">Categoria:</label><select id="titanflow-equip-cat"><option value="">-- Carregando... --</option></select></div>' +
+            '<div><label for="titanflow-equip-clase">Classe:</label><select id="titanflow-equip-clase" disabled><option value="">-- Primeiro escolha a Categoria --</option></select></div>' +
+            '<div><label for="titanflow-equip-crit">Criticidade:</label><select id="titanflow-equip-crit"></select></div>' +
+            '<div><label for="titanflow-equip-marca">Marca:</label><input type="text" id="titanflow-equip-marca"></div>' +
+            '<div><label for="titanflow-equip-estado">Estado:</label><select id="titanflow-equip-estado"></select></div>' +
+            '<div><label for="titanflow-equip-tipo">Tipo:</label><select id="titanflow-equip-tipo"></select></div>' +
+            '<div><label for="titanflow-equip-modelo">Modelo:</label><input type="text" id="titanflow-equip-modelo"></div>' +
+            '<div><label for="titanflow-equip-serie">N\u00ba de S\u00e9rie:</label><input type="text" id="titanflow-equip-serie"></div>' +
+            '<div><label for="titanflow-equip-valor">Valor USD:</label><input type="text" id="titanflow-equip-valor"></div>' +
+            '<div class="titanflow-full-width"><label for="titanflow-equip-datos">Dados T\u00e9cnicos:</label>' +
+              '<textarea id="titanflow-equip-datos" rows="3" style="width:100%;"></textarea></div>' +
+          '</div>' +
+          '<div style="margin-top:12px;">' +
+            '<button id="btn-criar-equipamento" style="width:100%;padding:10px;border:none;border-radius:5px;background-color:#27ae60;color:white;font-weight:bold;cursor:pointer;">' +
+              '\u2795 Criar Equipamento</button>' +
+            '<div id="titanflow-equip-status" style="font-size:12px;color:#888;margin-top:8px;text-align:center;">Carregando dados do TITAN\u2026</div>' +
+          '</div>';
+
+        const _acha = (id) => document.getElementById(id);
+        const _status = (txto, cor) => {
+          const e = _acha('titanflow-equip-status');
+          if (e) { e.textContent = txto; e.style.color = cor || '#888'; }
+        };
+
+        // --- iframe com o formulário real -------------------------------
+        const _antigo = _acha('titanflow-equip-iframe');
+        if (_antigo) _antigo.remove();
+        const _quadro = document.createElement('iframe');
+        _quadro.id = 'titanflow-equip-iframe';
+        _quadro.style.display = 'none';
+        document.body.appendChild(_quadro);
+
+        const _docTitan = () => { try { return _quadro.contentDocument; } catch (_e) { return null; } };
+
+        const _esperarForm = () => new Promise((ok, falha) => {
+          let voltas = 0;
+          const t = setInterval(() => {
+            voltas++;
+            const d = _docTitan();
+            if (d && d.readyState === 'complete' && d.getElementById('formDatos')) { clearInterval(t); ok(d); }
+            else if (voltas > 200) { clearInterval(t); falha(new Error('Timeout ao carregar o formul\u00e1rio de equipamentos.')); }
+          }, 100);
+        });
+
+        const _recarregarForm = () => { _quadro.src = _urlForm; return _esperarForm(); };
+
+        const _clonar = (origem, destino, textoVazio) => {
+          if (!origem || !destino) return;
+          destino.innerHTML = '';
+          const vazio = document.createElement('option');
+          vazio.value = ''; vazio.textContent = '-- ' + textoVazio + ' --';
+          destino.appendChild(vazio);
+          for (const o of origem.options) {
+            if (o.value === '') continue;
+            const n = document.createElement('option');
+            n.value = o.value; n.textContent = o.text;
+            destino.appendChild(n);
+          }
+        };
+
+        let _titan = null;
+        try {
+          _titan = await _recarregarForm();
+        } catch (erro) {
+          console.error('[TitanSystem][Equipamentos]', erro);
+          _status('N\u00e3o foi poss\u00edvel carregar o formul\u00e1rio do TITAN. Recarregue a p\u00e1gina.', '#e74c3c');
+          return;
+        }
+
+        const _cat = _acha('titanflow-equip-cat');
+        const _classe = _acha('titanflow-equip-clase');
+        _clonar(_titan.getElementById('dummy_cat'), _cat, 'Selecione a Categoria');
+        _clonar(_titan.getElementById('key__equipos_criticidad__id'), _acha('titanflow-equip-crit'), 'Selecione a Criticidade');
+        _clonar(_titan.getElementById('key__equipos_estados__id'), _acha('titanflow-equip-estado'), 'Selecione o Estado');
+        _clonar(_titan.getElementById('key__equipos_tipos__id'), _acha('titanflow-equip-tipo'), 'Selecione o Tipo');
+        _status('Pronto.');
+
+        // --- cascata: quem monta a lista de classes é o populate() do TITAN
+        // Duas etapas separadas de propósito. Espelhar no painel recria o
+        // <select> e portanto zera o que o usuário escolheu, então na hora de
+        // enviar só se popula o formulário do TITAN — sem tocar no painel.
+        const _popularClassesNoTitan = () => {
+          const alvo = _titan.getElementById('dummy_cat');
+          if (!alvo) return;
+          alvo.value = _cat.value;
+          try {
+            const jan = _quadro.contentWindow;
+            if (jan && typeof jan.populate === 'function') jan.populate(alvo, 'key__equipos_clases__id');
+          } catch (_e) { console.error('[TitanSystem][Equipamentos] populate falhou:', _e); }
+        };
+        const _espelharClasses = () => {
+          _popularClassesNoTitan();
+          _clonar(_titan.getElementById('key__equipos_clases__id'), _classe, 'Selecione a Classe');
+          _classe.disabled = !_cat.value;
+        };
+        _cat.onchange = _espelharClasses;
+
+        _acha('titanflow-equip-limpar').onclick = () => {
+          ['tag','nombre','marca','modelo','serie','valor','datos'].forEach((s) => {
+            const e = _acha('titanflow-equip-' + s); if (e) e.value = '';
+          });
+          ['cat','clase','crit','estado','tipo'].forEach((s) => {
+            const e = _acha('titanflow-equip-' + s); if (e) e.value = '';
+          });
+          _classe.disabled = true;
+          _status('Campos limpos.');
+        };
+
+        // --- criação -----------------------------------------------------
+        const OBRIGATORIOS = [
+          ['titanflow-equip-tag', 'Tag'],
+          ['titanflow-equip-nombre', 'Nome'],
+          ['titanflow-equip-clase', 'Classe'],
+          ['titanflow-equip-crit', 'Criticidade'],
+          ['titanflow-equip-marca', 'Marca'],
+          ['titanflow-equip-estado', 'Estado'],
+          ['titanflow-equip-tipo', 'Tipo'],
+          ['titanflow-equip-modelo', 'Modelo']
+        ];
+
+        const _botao = _acha('btn-criar-equipamento');
+        _botao.onclick = async () => {
+          for (const par of OBRIGATORIOS) {
+            const campo = _acha(par[0]);
+            if (!campo) {
+              _0x2786ff('Erro interno: o campo "' + par[1] + '" n\u00e3o existe no painel (' + par[0] + ').', 'error', 10000);
+              return;
+            }
+            if (!campo.value) {
+              _0x2786ff('Erro: O campo "' + par[1] + '" \u00e9 obrigat\u00f3rio.', 'error', 8000);
+              try {
+                campo.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                const antes = campo.style.outline;
+                campo.style.outline = '3px solid #e74c3c';
+                campo.style.outlineOffset = '2px';
+                setTimeout(function () { campo.style.outline = antes; campo.style.outlineOffset = ''; }, 4000);
+                campo.focus({ preventScroll: true });
+              } catch (_e) {}
+              return;
+            }
+          }
+
+          // guardado ANTES de mexer na cascata, que reconstrói o <select>
+          const _classeEscolhida = _classe.value;
+
+          _botao.disabled = true;
+          _status('Criando\u2026');
+          try {
+            const d = _docTitan();
+            if (!d || !d.getElementById('formDatos')) throw new Error('Formul\u00e1rio do TITAN indispon\u00edvel.');
+
+            // a lista de classes só existe no form do TITAN depois da cascata
+            _popularClassesNoTitan();
+            const por = (id, valor) => { const e = d.getElementById(id); if (e) e.value = valor; };
+            por('tag', _acha('titanflow-equip-tag').value);
+            por('nombre', _acha('titanflow-equip-nombre').value);
+            por('key__equipos_clases__id', _classeEscolhida);
+            por('key__equipos_criticidad__id', _acha('titanflow-equip-crit').value);
+            por('marca', _acha('titanflow-equip-marca').value);
+            por('key__equipos_estados__id', _acha('titanflow-equip-estado').value);
+            por('key__equipos_tipos__id', _acha('titanflow-equip-tipo').value);
+            por('modelo', _acha('titanflow-equip-modelo').value);
+            por('numero_de_serie', _acha('titanflow-equip-serie').value);
+            por('valor_u$s', _acha('titanflow-equip-valor').value);
+            por('datos_tecnicos', _acha('titanflow-equip-datos').value);
+
+            const enviar = d.getElementById('bEnviar');
+            if (!enviar) throw new Error('Bot\u00e3o de envio do TITAN n\u00e3o encontrado.');
+            enviar.click();
+
+            // o formulário some da página quando o envio conclui
+            await new Promise((ok) => {
+              let voltas = 0;
+              const t = setInterval(() => {
+                voltas++;
+                const doc = _docTitan();
+                if (!doc || !doc.getElementById('formDatos') || voltas > 100) { clearInterval(t); ok(); }
+              }, 100);
+            });
+
+            _0x2786ff('Equipamento "' + _acha('titanflow-equip-tag').value + '" enviado ao TITAN.', 'success', 6000);
+            _status('Criado. Confira em Equipamentos > Consultar.', '#27ae60');
+            _titan = await _recarregarForm();
+            _espelharClasses();
+          } catch (erro) {
+            console.error('[TitanSystem][Equipamentos] Falha ao criar:', erro);
+            _0x2786ff('Falha ao criar o equipamento: ' + erro.message, 'error', 8000);
+            _status('Falhou. Veja o console (F12).', '#e74c3c');
+          } finally {
+            _botao.disabled = false;
+          }
+        };
+      }
+
+
+    // ===== Painel próprio da página de Equipamentos (só administrador) =====
+    async function _painelEquipamentos() {
+      if (document.getElementById('painel-equipamentos')) return;
+
+      GM_addStyle(
+        '#painel-equipamentos { position: fixed; top: 80px; right: 20px; width: 430px; max-height: 82vh;' +
+        ' overflow-y: auto; background: #fff; border-radius: 10px; padding: 15px; z-index: 10001;' +
+        ' box-shadow: 0 5px 20px rgba(0,0,0,0.2); font-family: "Segoe UI", Arial, sans-serif; }' +
+        '#painel-equipamentos .titanflow-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }' +
+        '#painel-equipamentos .titanflow-full-width { grid-column: 1 / -1; }' +
+        '#painel-equipamentos label { display: block; font-weight: 600; font-size: 13px; color: #333; margin-bottom: 5px; }' +
+        '#painel-equipamentos input, #painel-equipamentos select, #painel-equipamentos textarea {' +
+        ' width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 13px; }' +
+        '#painel-equipamentos .titanflow-titulo-secao { font-size: 16px; font-weight: bold; color: #3366ff;' +
+        ' border-bottom: 2px solid #e9ecef; padding-bottom: 8px; margin: 10px 0; grid-column: 1 / -1;' +
+        ' display: flex; justify-content: space-between; align-items: center; }' +
+        '#painel-equipamentos .eq-linha { display: flex; align-items: center; gap: 8px; padding: 4px 2px;' +
+        ' border-bottom: 1px solid #f0f0f0; font-size: 12px; }' +
+        '#painel-equipamentos .eq-linha input[type=checkbox] { width: auto; margin: 0; }' +
+        '#painel-equipamentos .eq-linha.bloqueada { color: #aaa; }' +
+        '#painel-equipamentos .eq-lista { max-height: 240px; overflow-y: auto; border: 1px solid #ddd;' +
+        ' border-radius: 5px; padding: 4px 8px; }'
+      );
+
+      const _p = document.createElement('div');
+      _p.id = 'painel-equipamentos';
+      _p.innerHTML =
+        '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">' +
+          '<h3 style="color:#3366ff; margin:0; font-size:16px;">TitanSystem Equipamentos \u{1F527}</h3>' +
+          '<div style="display:flex; align-items:center; gap:8px;">' +
+            '<span style="font-size:12px; color:#888;">v' + GM_info.script.version + '</span>' +
+            '<button id="eq-fechar" title="Ocultar" style="background:none;border:none;font-size:18px;cursor:pointer;">\u00d7</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="titanflow-tab-container" style="display:flex; gap:2px; margin-bottom:10px;">' +
+          '<button id="eq-tab-criar" class="titanflow-tab-btn">Criar</button>' +
+          '<button id="eq-tab-baixa" class="titanflow-tab-btn">Baixa</button>' +
+        '</div>' +
+        '<div id="eq-conteudo"></div>';
+      document.body.appendChild(_p);
+
+      const _cont = document.getElementById('eq-conteudo');
+      const _btCriar = document.getElementById('eq-tab-criar');
+      const _btBaixa = document.getElementById('eq-tab-baixa');
+      document.getElementById('eq-fechar').onclick = () => { _p.style.display = 'none'; };
+
+      const _abrir = async (qual) => {
+        _btCriar.classList.toggle('active', qual === 'criar');
+        _btBaixa.classList.toggle('active', qual === 'baixa');
+        localStorage.setItem('titanflow_equip_ultima_aba', qual);
+        if (qual === 'criar') await _abaEquipamentos(_cont);
+        else _abaBaixaEquipamentos(_cont);
+      };
+      _btCriar.onclick = () => _abrir('criar');
+      _btBaixa.onclick = () => _abrir('baixa');
+      await _abrir(localStorage.getItem('titanflow_equip_ultima_aba') || 'criar');
+    }
+
+    // Lê as linhas da tabela de resultados da página de Equipamentos.
+    // Cada <tr> traz onclick="mostrar_acciones_disponibles(this, <id>, '<bits>')";
+    // o bitmap é (editar, baja), pdf, listado, imprimir, então bits[1] diz se
+    // aquele equipamento aceita baixa.
+    function _lerEquipamentosDaTela() {
+      const achados = [];
+      for (const tr of document.querySelectorAll('tr[onclick]')) {
+        const m = /mostrar_acciones_disponibles\(\s*this\s*,\s*(\d+)\s*,\s*'([01]+)'/.exec(tr.getAttribute('onclick') || '');
+        if (!m) continue;
+        const tds = tr.querySelectorAll('td');
+        achados.push({
+          id: m[1],
+          podeBaixa: m[2].charAt(1) === '1',
+          tag: tds[0] ? tds[0].textContent.trim() : m[1],
+          nome: tds[2] ? tds[2].textContent.trim() : ''
+        });
+      }
+      return achados;
+    }
+
+    function _abaBaixaEquipamentos(_cont) {
+      const _lista = _lerEquipamentosDaTela();
+
+      _cont.innerHTML =
+        '<div class="titanflow-titulo-secao"><span>Baixa de Equipamentos</span>' +
+          '<span style="font-size:12px;font-weight:normal;color:#888;">' + _lista.length + ' na tela</span></div>' +
+        (_lista.length === 0
+          ? '<p style="font-size:13px;color:#888;">Nenhum equipamento na tela. Fa\u00e7a uma busca em Equipamentos &gt; Consultar e o painel lista aqui.</p>'
+          : '<div class="eq-lista" id="eq-lista"></div>' +
+            '<div style="margin-top:10px;">' +
+              '<label for="eq-motivo">Motivo da Baixa (obrigat\u00f3rio):</label>' +
+              '<textarea id="eq-motivo" rows="3" placeholder="Ex: equipamento sucateado, substitu\u00eddo por ..."></textarea>' +
+            '</div>' +
+            '<button id="eq-btn-baixa" style="width:100%;margin-top:10px;padding:10px;border:none;border-radius:5px;' +
+              'background-color:#dc3545;color:white;font-weight:bold;cursor:pointer;">Dar baixa nos selecionados</button>' +
+            '<div id="eq-status" style="font-size:12px;color:#888;margin-top:8px;text-align:center;"></div>');
+
+      if (_lista.length === 0) return;
+
+      const _cx = document.getElementById('eq-lista');
+      for (const eq of _lista) {
+        const linha = document.createElement('label');
+        linha.className = 'eq-linha' + (eq.podeBaixa ? '' : ' bloqueada');
+        linha.innerHTML =
+          '<input type="checkbox" value="' + eq.id + '"' + (eq.podeBaixa ? '' : ' disabled') + '>' +
+          '<b>' + eq.tag + '</b><span style="flex:1;">' + eq.nome + '</span>' +
+          (eq.podeBaixa ? '' : '<span title="O TITAN n\u00e3o libera baixa para este">\u{1F512}</span>');
+        _cx.appendChild(linha);
+      }
+
+      const _status = (t, cor) => {
+        const e = document.getElementById('eq-status');
+        if (e) { e.textContent = t; e.style.color = cor || '#888'; }
+      };
+
+      document.getElementById('eq-btn-baixa').onclick = async () => {
+        const marcados = [..._cx.querySelectorAll('input[type=checkbox]:checked')].map((c) => c.value);
+        const motivo = document.getElementById('eq-motivo').value.trim();
+
+        if (marcados.length === 0) { _0x2786ff('Selecione ao menos um equipamento.', 'warning'); return; }
+        if (!motivo) {
+          _0x2786ff('Erro: o Motivo da Baixa \u00e9 obrigat\u00f3rio.', 'error', 8000);
+          const m = document.getElementById('eq-motivo');
+          m.style.outline = '3px solid #e74c3c';
+          setTimeout(() => { m.style.outline = ''; }, 4000);
+          m.focus();
+          return;
+        }
+
+        const escolhidos = _lista.filter((e) => marcados.indexOf(e.id) !== -1);
+        const resumo = escolhidos.map((e) => '  \u2022 ' + e.tag + (e.nome ? ' \u2014 ' + e.nome : '')).join('\n');
+        if (!confirm('Dar baixa em ' + escolhidos.length + ' equipamento(s)?\n\n' + resumo +
+            '\n\nMotivo: ' + motivo + '\n\nEsta a\u00e7\u00e3o marca os registros como dados baixa no TITAN.')) return;
+
+        const botao = document.getElementById('eq-btn-baixa');
+        botao.disabled = true;
+        let ok = 0;
+        const falhas = [];
+
+        for (let i = 0; i < escolhidos.length; i++) {
+          const eq = escolhidos[i];
+          _status('Dando baixa ' + (i + 1) + ' de ' + escolhidos.length + ' (' + eq.tag + ')\u2026');
+          try {
+            await _darBaixaEquipamento(eq.id, motivo);
+            ok++;
+          } catch (erro) {
+            console.error('[TitanSystem][Equipamentos] falha na baixa de ' + eq.tag + ':', erro);
+            falhas.push(eq.tag);
+          }
+        }
+
+        botao.disabled = false;
+        if (falhas.length === 0) {
+          _0x2786ff(ok + ' equipamento(s) com baixa. Atualizando\u2026', 'success', 5000);
+          _status('Conclu\u00eddo.', '#27ae60');
+          setTimeout(() => location.reload(), 1500);
+        } else {
+          _0x2786ff(ok + ' com baixa, ' + falhas.length + ' falharam: ' + falhas.join(', '), 'error', 10000);
+          _status('Falhas em: ' + falhas.join(', '), '#e74c3c');
+        }
+      };
+    }
+
+    // Abre o formulário de baixa do TITAN num iframe oculto, preenche o motivo
+    // e submete. É o mesmo caminho do bot\u00e3o "remover" da p\u00e1gina.
+    function _darBaixaEquipamento(idReg, motivo) {
+      return new Promise((pronto, falhou) => {
+        const url = './admin.php?SESID=' + _0x2012f5() +
+          '&n1=200&n2=202&in=10&seccion=titan_equipos&op=c&subseccion=eliminar&op=m&id_reg=' + idReg;
+        const quadro = document.createElement('iframe');
+        quadro.style.display = 'none';
+        document.body.appendChild(quadro);
+        const limpar = () => { if (document.body.contains(quadro)) document.body.removeChild(quadro); };
+
+        let voltas = 0;
+        const t = setInterval(() => {
+          voltas++;
+          let d = null;
+          try { d = quadro.contentDocument; } catch (_e) { d = null; }
+          if (d && d.readyState === 'complete' && d.getElementById('formDatos')) {
+            clearInterval(t);
+            const causa = d.getElementById('eliminacion_causa');
+            const enviar = d.getElementById('bEnviar');
+            if (!causa || !enviar) { limpar(); falhou(new Error('Formul\u00e1rio de baixa inesperado para o id ' + idReg + '.')); return; }
+            causa.value = motivo;
+            // o onsubmit do TITAN chama confirm(); já confirmamos na lista
+            try { d.forms.formDatos.onsubmit = null; } catch (_e) {}
+            enviar.click();
+            let esperas = 0;
+            const t2 = setInterval(() => {
+              esperas++;
+              let d2 = null;
+              try { d2 = quadro.contentDocument; } catch (_e) { d2 = null; }
+              if (!d2 || !d2.getElementById('eliminacion_causa') || esperas > 100) {
+                clearInterval(t2); limpar(); pronto();
+              }
+            }, 100);
+          } else if (voltas > 200) {
+            clearInterval(t); limpar();
+            falhou(new Error('Timeout ao abrir a baixa do id ' + idReg + '.'));
+          }
+        }, 100);
+
+        quadro.src = url;
+      });
     }
 
     function _0x2ebe4b() {
@@ -1913,215 +2335,6 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
         , _0x538775 = _0x598e3e[_0x4b5828(0x667)]('#tab-btn-programacao')
         , _0x23ca39 = _0x598e3e['querySelector'](_0x4b5828(0x5ab))
         , _0xTabEquip = _0x598e3e.querySelector('#tab-btn-equipamentos');
-
-      
-      // ===== Aba "Equipamentos": criação de equipamentos =====================
-      // Espelha o formulário nativo (titan_equipos&op=a) num iframe oculto:
-      // as listas saem dele e o envio é feito por ele, então a cascata
-      // Categoria->Classe continua sendo a do TITAN e nunca desatualiza.
-      async function _abaEquipamentos(_cont) {
-        const _urlForm = '/albatros/admin.php?SESID=' + _0x2012f5() +
-          '&seccion=titan_equipos&op=a&in=10&n2=202&n1=200';
-
-        _cont.innerHTML =
-          '<div class="titanflow-grid">' +
-            '<div class="titanflow-titulo-secao"><span>Novo Equipamento</span>' +
-              '<button id="titanflow-equip-limpar" title="Limpar todos os campos">\u{1F9F9} Limpar</button></div>' +
-            '<div><label for="titanflow-equip-tag">Tag:</label><input type="text" id="titanflow-equip-tag" placeholder="Ex: BP-1001"></div>' +
-            '<div><label for="titanflow-equip-nombre">Nome:</label><input type="text" id="titanflow-equip-nombre" placeholder="Nome do equipamento"></div>' +
-            '<div><label for="titanflow-equip-cat">Categoria:</label><select id="titanflow-equip-cat"><option value="">-- Carregando... --</option></select></div>' +
-            '<div><label for="titanflow-equip-clase">Classe:</label><select id="titanflow-equip-clase" disabled><option value="">-- Primeiro escolha a Categoria --</option></select></div>' +
-            '<div><label for="titanflow-equip-crit">Criticidade:</label><select id="titanflow-equip-crit"></select></div>' +
-            '<div><label for="titanflow-equip-marca">Marca:</label><input type="text" id="titanflow-equip-marca"></div>' +
-            '<div><label for="titanflow-equip-estado">Estado:</label><select id="titanflow-equip-estado"></select></div>' +
-            '<div><label for="titanflow-equip-tipo">Tipo:</label><select id="titanflow-equip-tipo"></select></div>' +
-            '<div><label for="titanflow-equip-modelo">Modelo:</label><input type="text" id="titanflow-equip-modelo"></div>' +
-            '<div><label for="titanflow-equip-serie">N\u00ba de S\u00e9rie:</label><input type="text" id="titanflow-equip-serie"></div>' +
-            '<div><label for="titanflow-equip-valor">Valor USD:</label><input type="text" id="titanflow-equip-valor"></div>' +
-            '<div class="titanflow-full-width"><label for="titanflow-equip-datos">Dados T\u00e9cnicos:</label>' +
-              '<textarea id="titanflow-equip-datos" rows="3" style="width:100%;"></textarea></div>' +
-          '</div>' +
-          '<div style="margin-top:12px;">' +
-            '<button id="btn-criar-equipamento" style="width:100%;padding:10px;border:none;border-radius:5px;background-color:#27ae60;color:white;font-weight:bold;cursor:pointer;">' +
-              '\u2795 Criar Equipamento</button>' +
-            '<div id="titanflow-equip-status" style="font-size:12px;color:#888;margin-top:8px;text-align:center;">Carregando dados do TITAN\u2026</div>' +
-          '</div>';
-
-        const _acha = (id) => document.getElementById(id);
-        const _status = (txto, cor) => {
-          const e = _acha('titanflow-equip-status');
-          if (e) { e.textContent = txto; e.style.color = cor || '#888'; }
-        };
-
-        // --- iframe com o formulário real -------------------------------
-        const _antigo = _acha('titanflow-equip-iframe');
-        if (_antigo) _antigo.remove();
-        const _quadro = document.createElement('iframe');
-        _quadro.id = 'titanflow-equip-iframe';
-        _quadro.style.display = 'none';
-        document.body.appendChild(_quadro);
-
-        const _docTitan = () => { try { return _quadro.contentDocument; } catch (_e) { return null; } };
-
-        const _esperarForm = () => new Promise((ok, falha) => {
-          let voltas = 0;
-          const t = setInterval(() => {
-            voltas++;
-            const d = _docTitan();
-            if (d && d.readyState === 'complete' && d.getElementById('formDatos')) { clearInterval(t); ok(d); }
-            else if (voltas > 200) { clearInterval(t); falha(new Error('Timeout ao carregar o formul\u00e1rio de equipamentos.')); }
-          }, 100);
-        });
-
-        const _recarregarForm = () => { _quadro.src = _urlForm; return _esperarForm(); };
-
-        const _clonar = (origem, destino, textoVazio) => {
-          if (!origem || !destino) return;
-          destino.innerHTML = '';
-          const vazio = document.createElement('option');
-          vazio.value = ''; vazio.textContent = '-- ' + textoVazio + ' --';
-          destino.appendChild(vazio);
-          for (const o of origem.options) {
-            if (o.value === '') continue;
-            const n = document.createElement('option');
-            n.value = o.value; n.textContent = o.text;
-            destino.appendChild(n);
-          }
-        };
-
-        let _titan = null;
-        try {
-          _titan = await _recarregarForm();
-        } catch (erro) {
-          console.error('[TitanSystem][Equipamentos]', erro);
-          _status('N\u00e3o foi poss\u00edvel carregar o formul\u00e1rio do TITAN. Recarregue a p\u00e1gina.', '#e74c3c');
-          return;
-        }
-
-        const _cat = _acha('titanflow-equip-cat');
-        const _classe = _acha('titanflow-equip-clase');
-        _clonar(_titan.getElementById('dummy_cat'), _cat, 'Selecione a Categoria');
-        _clonar(_titan.getElementById('key__equipos_criticidad__id'), _acha('titanflow-equip-crit'), 'Selecione a Criticidade');
-        _clonar(_titan.getElementById('key__equipos_estados__id'), _acha('titanflow-equip-estado'), 'Selecione o Estado');
-        _clonar(_titan.getElementById('key__equipos_tipos__id'), _acha('titanflow-equip-tipo'), 'Selecione o Tipo');
-        _status('Pronto.');
-
-        // --- cascata: quem monta a lista de classes é o populate() do TITAN
-        // Duas etapas separadas de propósito. Espelhar no painel recria o
-        // <select> e portanto zera o que o usuário escolheu, então na hora de
-        // enviar só se popula o formulário do TITAN — sem tocar no painel.
-        const _popularClassesNoTitan = () => {
-          const alvo = _titan.getElementById('dummy_cat');
-          if (!alvo) return;
-          alvo.value = _cat.value;
-          try {
-            const jan = _quadro.contentWindow;
-            if (jan && typeof jan.populate === 'function') jan.populate(alvo, 'key__equipos_clases__id');
-          } catch (_e) { console.error('[TitanSystem][Equipamentos] populate falhou:', _e); }
-        };
-        const _espelharClasses = () => {
-          _popularClassesNoTitan();
-          _clonar(_titan.getElementById('key__equipos_clases__id'), _classe, 'Selecione a Classe');
-          _classe.disabled = !_cat.value;
-        };
-        _cat.onchange = _espelharClasses;
-
-        _acha('titanflow-equip-limpar').onclick = () => {
-          ['tag','nombre','marca','modelo','serie','valor','datos'].forEach((s) => {
-            const e = _acha('titanflow-equip-' + s); if (e) e.value = '';
-          });
-          ['cat','clase','crit','estado','tipo'].forEach((s) => {
-            const e = _acha('titanflow-equip-' + s); if (e) e.value = '';
-          });
-          _classe.disabled = true;
-          _status('Campos limpos.');
-        };
-
-        // --- criação -----------------------------------------------------
-        const OBRIGATORIOS = [
-          ['titanflow-equip-tag', 'Tag'],
-          ['titanflow-equip-nombre', 'Nome'],
-          ['titanflow-equip-clase', 'Classe'],
-          ['titanflow-equip-crit', 'Criticidade'],
-          ['titanflow-equip-marca', 'Marca'],
-          ['titanflow-equip-estado', 'Estado'],
-          ['titanflow-equip-tipo', 'Tipo'],
-          ['titanflow-equip-modelo', 'Modelo']
-        ];
-
-        const _botao = _acha('btn-criar-equipamento');
-        _botao.onclick = async () => {
-          for (const par of OBRIGATORIOS) {
-            const campo = _acha(par[0]);
-            if (!campo) {
-              _0x2786ff('Erro interno: o campo "' + par[1] + '" n\u00e3o existe no painel (' + par[0] + ').', 'error', 10000);
-              return;
-            }
-            if (!campo.value) {
-              _0x2786ff('Erro: O campo "' + par[1] + '" \u00e9 obrigat\u00f3rio.', 'error', 8000);
-              try {
-                campo.scrollIntoView({ block: 'center', behavior: 'smooth' });
-                const antes = campo.style.outline;
-                campo.style.outline = '3px solid #e74c3c';
-                campo.style.outlineOffset = '2px';
-                setTimeout(function () { campo.style.outline = antes; campo.style.outlineOffset = ''; }, 4000);
-                campo.focus({ preventScroll: true });
-              } catch (_e) {}
-              return;
-            }
-          }
-
-          // guardado ANTES de mexer na cascata, que reconstrói o <select>
-          const _classeEscolhida = _classe.value;
-
-          _botao.disabled = true;
-          _status('Criando\u2026');
-          try {
-            const d = _docTitan();
-            if (!d || !d.getElementById('formDatos')) throw new Error('Formul\u00e1rio do TITAN indispon\u00edvel.');
-
-            // a lista de classes só existe no form do TITAN depois da cascata
-            _popularClassesNoTitan();
-            const por = (id, valor) => { const e = d.getElementById(id); if (e) e.value = valor; };
-            por('tag', _acha('titanflow-equip-tag').value);
-            por('nombre', _acha('titanflow-equip-nombre').value);
-            por('key__equipos_clases__id', _classeEscolhida);
-            por('key__equipos_criticidad__id', _acha('titanflow-equip-crit').value);
-            por('marca', _acha('titanflow-equip-marca').value);
-            por('key__equipos_estados__id', _acha('titanflow-equip-estado').value);
-            por('key__equipos_tipos__id', _acha('titanflow-equip-tipo').value);
-            por('modelo', _acha('titanflow-equip-modelo').value);
-            por('numero_de_serie', _acha('titanflow-equip-serie').value);
-            por('valor_u$s', _acha('titanflow-equip-valor').value);
-            por('datos_tecnicos', _acha('titanflow-equip-datos').value);
-
-            const enviar = d.getElementById('bEnviar');
-            if (!enviar) throw new Error('Bot\u00e3o de envio do TITAN n\u00e3o encontrado.');
-            enviar.click();
-
-            // o formulário some da página quando o envio conclui
-            await new Promise((ok) => {
-              let voltas = 0;
-              const t = setInterval(() => {
-                voltas++;
-                const doc = _docTitan();
-                if (!doc || !doc.getElementById('formDatos') || voltas > 100) { clearInterval(t); ok(); }
-              }, 100);
-            });
-
-            _0x2786ff('Equipamento "' + _acha('titanflow-equip-tag').value + '" enviado ao TITAN.', 'success', 6000);
-            _status('Criado. Confira em Equipamentos > Consultar.', '#27ae60');
-            _titan = await _recarregarForm();
-            _espelharClasses();
-          } catch (erro) {
-            console.error('[TitanSystem][Equipamentos] Falha ao criar:', erro);
-            _0x2786ff('Falha ao criar o equipamento: ' + erro.message, 'error', 8000);
-            _status('Falhou. Veja o console (F12).', '#e74c3c');
-          } finally {
-            _botao.disabled = false;
-          }
-        };
-      }
 
       function _0x163373(_0x3294c3) {
         const _0x5eb016 = _0x4b5828;
