@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TitanSystem 🚀
 // @namespace    http://tampermonkey.net/
-// @version      7.9
+// @version      7.10
 // @description  Otimiza e automatiza o fluxo de trabalho de Ordens de Serviço no sistema Titan, desde a criação até o fechamento.
 // @author       PCM - OTAMERICA
 // @run-at       document-idle
@@ -5402,9 +5402,21 @@ _0x5b2119['click']();
     } catch(e) { console.error('Erro Robo B:', e); }
 })(),
 
-_0x3b9341[_0x10eb8e(0x405)](_0x10eb8e(0x67c))['click'](), setTimeout(() => {
-                        _0x435e35(), _0x4b89a7();
-                      }, 0x7d0);
+_0x3b9341[_0x10eb8e(0x405)](_0x10eb8e(0x67c))['click']();
+                      let _tentativasEnvio = 0x0;
+                      const _pollEnvio = setInterval(() => {
+                        _tentativasEnvio++;
+                        try {
+                          if (!_0x2b04a3.contentDocument?.getElementById('formDatos')) {
+                            clearInterval(_pollEnvio), _0x435e35(), _0x4b89a7();
+                          } else if (_tentativasEnvio > 0x3c) {
+                            clearInterval(_pollEnvio), _0x435e35();
+                            _0x25dadf(new Error('Timeout: a p\u00e1gina n\u00e3o mudou ap\u00f3s o clique em Salvar (poss\u00edvel campo obrigat\u00f3rio vazio, como Prop\u00f3sito).'));
+                          }
+                        } catch (_erroPollEnvio) {
+                          clearInterval(_pollEnvio), _0x435e35(), _0x4b89a7();
+                        }
+                      }, 0xc8);
                     } else _0x27fce9 > 0x32 && (clearInterval(_0x11ffcc), _0x435e35(), _0x25dadf(new Error(_0x10eb8e(0x451))));
                   }, 0xc8);
                   return;
@@ -5437,6 +5449,10 @@ _0x3b9341[_0x10eb8e(0x405)](_0x10eb8e(0x67c))['click'](), setTimeout(() => {
       if (!_0x21c2c5[_0x4855bb(0x30c)][_0x4855bb(0x247)]()) {
         _0x2786ff(_0x4855bb(0x40a), _0x4855bb(0x5fb));
         throw new Error(_0x4855bb(0x146));
+      }
+      if (!_0x21c2c5.propositoId) {
+        _0x2786ff('O campo "Prop\u00f3sito" \u00e9 obrigat\u00f3rio.', 'error');
+        throw new Error('Prop\u00f3sito n\u00e3o selecionado.');
       }
       _0x5b5dcd = !![], localStorage[_0x4855bb(0x634)](_0x4855bb(0x26e), _0x21c2c5[_0x4855bb(0x632)]), localStorage[_0x4855bb(0x634)](_0x4855bb(0x289), _0x21c2c5[_0x4855bb(0x314)]);
       let _0x4aa092 = 0x0;
@@ -6618,7 +6634,7 @@ if (campoTipo && campoTipo.parentNode && campoTipo.parentNode.parentNode) {
     function _0x595ad3() {
       const _0x4d2828 = _0x1f2edc;
       GM_addStyle(_0x4d2828(0x2e5));
-      const _0x161077 = _0x4d2828(0x602);
+      const _0x161077 = "\n        <div class=\"titanflow-modal-overlay-marine\">\n            <div class=\"titanflow-modal-content-marine\">\n                <h3>🤖 Automação OS MARINE</h3>\n                <p>Cole o script JSON no formato de array de objetos abaixo. O campo \"proposito\" é opcional: se omitido, usa o Propósito selecionado ao lado (em \"Criar Pedido\").</p>\n                <textarea id=\"textarea-os-marine\" placeholder=\"[\n  {\n    \"equipamento\": \"NOME EXATO DO EQUIPAMENTO OU TAG\",\n    \"descricao\": \"Descrição do serviço...\",\n    \"codigoFalha\": \"#CODIGO\",\n    \"taller\": \"6\",\n    \"tipoTrabalho\": \"5\",\n    \"proposito\": \"6\"\n  }\n]\"></textarea>\n                <div class=\"modal-actions\">\n                    <button id=\"btn-cancelar-marine\" class=\"action-btn\" style=\"background-color: #6c757d;\">Cancelar</button>\n                    <button id=\"btn-processar-marine\" class=\"action-btn create-btn\">Processar Script</button>\n                </div>\n            </div>\n        </div>\n    ";
       document[_0x4d2828(0x4c5)][_0x4d2828(0x4b4)](_0x4d2828(0x30a), _0x161077);
       const _0x31ec52 = document[_0x4d2828(0x667)](_0x4d2828(0x66b))
         , _0x542b68 = () => document['body'][_0x4d2828(0xfd)](_0x31ec52) && document[_0x4d2828(0x4c5)]['removeChild'](_0x31ec52);
@@ -6661,11 +6677,19 @@ if (campoTipo && campoTipo.parentNode && campoTipo.parentNode.parentNode) {
           _0x4736b1[_0x55b0fd(0x2d4)](_0x55b0fd(0x671) + (_0x26a61e + 0x1) + _0x55b0fd(0x337) + _0xa8c722[_0x55b0fd(0x3be)] + '\x22');
           continue;
         }
+        const _propositoLinha = (_0xa8c722.proposito != null && String(_0xa8c722.proposito).trim() !== '')
+          ? String(_0xa8c722.proposito).trim()
+          : ((document.getElementById('pedido-proposito') || {}).value || '');
+        if (!_propositoLinha) {
+          _0x4736b1.push('Linha ' + (_0x26a61e + 0x1) + ': Prop\u00f3sito n\u00e3o informado (adicione "proposito" no JSON ou selecione um no painel).');
+          continue;
+        }
         _0x24c330[_0x55b0fd(0x2d4)]({
           'equipamentoId': _0x7f3027['id']
           , 'descricao': (_0xa8c722[_0x55b0fd(0x30c)] + '\x20' + (_0xa8c722[_0x55b0fd(0x4cb)] || ''))[_0x55b0fd(0x247)]()
           , 'tallerId': _0xa8c722[_0x55b0fd(0x5e1)]
           , 'tipoTrabalhoId': _0xa8c722[_0x55b0fd(0x684)]
+          , 'propositoId': _propositoLinha
           , 'dataRequerida': new Date()[_0x55b0fd(0x1ed)]()[_0x55b0fd(0x3f0)]('T')[0x0][_0x55b0fd(0x3f0)]('-')[_0x55b0fd(0x66f)]()[_0x55b0fd(0x42f)]('/')
         });
       }
