@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TitanSystem 🚀
 // @namespace    http://tampermonkey.net/
-// @version      7.11
+// @version      7.12
 // @description  Otimiza e automatiza o fluxo de trabalho de Ordens de Serviço no sistema Titan, desde a criação até o fechamento.
 // @author       PCM - OTAMERICA
 // @run-at       document-idle
@@ -505,7 +505,7 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
     _0x51f98b(![]), _0x2fd0e7(), _0x670dab(), _0x9324e5();
     const _0x5e82e6 = sessionStorage['getItem']('titanflow_session_planos');
     _0x5e82e6 && (_0x27b91a = JSON[_0x1f2edc(0x18c)](_0x5e82e6));
-    const _0x37d9c8 = sessionStorage[_0x1f2edc(0x1fb)](_0x1f2edc(0x21c));
+    const _0x37d9c8 = sessionStorage[_0x1f2edc(0x1fb)](_0x1f2edc(0x21c) + '_v2');
     _0x37d9c8 && (_0x34e176 = JSON[_0x1f2edc(0x18c)](_0x37d9c8));
 
     function _0x9324e5() {
@@ -932,6 +932,7 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
             '<div class="titanflow-full-width" style="position:relative;">' +
               '<label for="titanflow-equip-padre-busca">Padre (opcional):</label>' +
               '<input type="text" id="titanflow-equip-padre-busca" placeholder="Buscar por tag ou nome do equipamento pai...">' +
+              '<button type="button" id="titanflow-equip-padre-arvore" title="Ver a árvore completa de equipamentos" style="margin-top:4px;width:100%;padding:6px;border:1px solid #3366ff;border-radius:5px;background:#fff;color:#3366ff;font-weight:bold;cursor:pointer;font-size:12px;">🌳 Ver árvore completa</button>' +
               '<div id="titanflow-equip-padre-resultados" class="eq-busca-resultados"></div>' +
               '<div id="titanflow-equip-padre-selecionado" style="display:none;margin-top:6px;font-size:12px;background:#eef3ff;border:1px solid #cfe0ff;border-radius:5px;padding:6px 8px;">' +
                 '<span id="titanflow-equip-padre-texto"></span>' +
@@ -1054,6 +1055,113 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
               resultados.style.display = 'none';
             }
           });
+        }
+
+
+        // --- árvore completa de equipamentos (estilo Sentinel) ----------
+        // Reaproveita _0x34e176 (agora com o campo pai, extraído da própria
+        // página nativa) — não guarda nada estático: toda vez que a aba
+        // abre, reconstrói a árvore a partir da lista carregada na sessão.
+        const _arvoreFilhos = new Map();
+        for (const _eq of _0x34e176) {
+          const _chave = _eq.pai || '';
+          if (!_arvoreFilhos.has(_chave)) _arvoreFilhos.set(_chave, []);
+          _arvoreFilhos.get(_chave).push(_eq);
+        }
+        const _escaparHtml = (_s) => (_s || '').toString()
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');
+        const _construirArvoreHtml = (_paiId) => {
+          const _filhos = (_arvoreFilhos.get(_paiId) || []).slice()
+            .sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
+          if (!_filhos.length) return '';
+          return '<ul>' + _filhos.map((_eq) => {
+            const _temFilhos = (_arvoreFilhos.get(String(_eq.id)) || []).length > 0;
+            return '<li class="eq-arvore-item">' +
+              '<span class="eq-arvore-linha">' +
+                '<span class="eq-arvore-toggle' + (_temFilhos ? '' : ' eq-arvore-toggle-vazio') + '">▶</span>' +
+                '<span class="eq-arvore-rotulo" data-id="' + _escaparHtml(_eq.id) + '"><b>' + _escaparHtml(_eq.tag) + '</b> ' + _escaparHtml(_eq.nome) + '</span>' +
+              '</span>' +
+              (_temFilhos ? _construirArvoreHtml(String(_eq.id)) : '') +
+              '</li>';
+          }).join('') + '</ul>';
+        };
+        let _arvoreOverlay = document.getElementById('eq-arvore-overlay');
+        if (!_arvoreOverlay) {
+          _arvoreOverlay = document.createElement('div');
+          _arvoreOverlay.id = 'eq-arvore-overlay';
+          _arvoreOverlay.className = 'eq-arvore-overlay';
+          _arvoreOverlay.style.display = 'none';
+          _arvoreOverlay.innerHTML =
+            '<div class="eq-arvore-modal">' +
+              '<div class="eq-arvore-cabecalho">' +
+                '<h3>Árvore de Equipamentos 🌳</h3>' +
+                '<button type="button" id="eq-arvore-fechar" class="eq-arvore-fechar">×</button>' +
+              '</div>' +
+              '<input type="text" id="eq-arvore-filtro" placeholder="Filtrar por tag ou nome...">' +
+              '<div id="eq-arvore-lista" class="eq-arvore-lista"></div>' +
+            '</div>';
+          document.body.appendChild(_arvoreOverlay);
+        }
+        const _arvoreLista = document.getElementById('eq-arvore-lista');
+        const _arvoreFiltro = document.getElementById('eq-arvore-filtro');
+        let _arvoreConstruida = false;
+        const _fecharArvore = () => { _arvoreOverlay.style.display = 'none'; };
+        const _filtrarArvore = (_termoBruto) => {
+          const _termo = _0x360915((_termoBruto || '').trim());
+          const _itens = _arvoreLista.querySelectorAll('.eq-arvore-item');
+          if (!_termo) {
+            _itens.forEach((_li) => {
+              _li.style.display = '';
+              _li.classList.remove('aberto');
+              const _t = _li.querySelector(':scope > .eq-arvore-linha .eq-arvore-toggle');
+              if (_t && !_t.classList.contains('eq-arvore-toggle-vazio')) _t.textContent = '▶';
+            });
+            return;
+          }
+          _itens.forEach((_li) => { _li.style.display = 'none'; });
+          _itens.forEach((_li) => {
+            const _rotulo = _li.querySelector(':scope > .eq-arvore-linha .eq-arvore-rotulo');
+            const _texto = _0x360915(_rotulo ? _rotulo.textContent : '');
+            if (!_texto.includes(_termo)) return;
+            let _atual = _li;
+            while (_atual && _atual.classList && _atual.classList.contains('eq-arvore-item')) {
+              _atual.style.display = '';
+              _atual.classList.add('aberto');
+              const _t = _atual.querySelector(':scope > .eq-arvore-linha .eq-arvore-toggle');
+              if (_t && !_t.classList.contains('eq-arvore-toggle-vazio')) _t.textContent = '▼';
+              _atual = _atual.parentElement && _atual.parentElement.closest('.eq-arvore-item');
+            }
+          });
+        };
+        const _abrirArvore = () => {
+          if (!_arvoreConstruida) {
+            _arvoreLista.innerHTML = _construirArvoreHtml('');
+            _arvoreConstruida = true;
+          }
+          _arvoreOverlay.style.display = 'flex';
+          _arvoreFiltro.value = '';
+          _filtrarArvore('');
+          _arvoreFiltro.focus();
+        };
+        _arvoreLista.onclick = (ev) => {
+          const _toggle = ev.target.closest('.eq-arvore-toggle');
+          if (_toggle && !_toggle.classList.contains('eq-arvore-toggle-vazio')) {
+            const _item = _toggle.closest('.eq-arvore-item');
+            _item.classList.toggle('aberto');
+            _toggle.textContent = _item.classList.contains('aberto') ? '▼' : '▶';
+            return;
+          }
+          const _rotulo = ev.target.closest('.eq-arvore-rotulo');
+          if (_rotulo) {
+            const _equip = _0x34e176.find((_e) => String(_e.id) === _rotulo.dataset.id);
+            if (_equip) { _escolherPadre(_equip); _fecharArvore(); }
+          }
+        };
+        _arvoreFiltro.oninput = () => _filtrarArvore(_arvoreFiltro.value);
+        _arvoreOverlay.onclick = (ev) => { if (ev.target === _arvoreOverlay) _fecharArvore(); };
+        document.getElementById('eq-arvore-fechar').onclick = _fecharArvore;
+        if (_acha('titanflow-equip-padre-arvore')) {
+          _acha('titanflow-equip-padre-arvore').onclick = (ev) => { ev.preventDefault(); _abrirArvore(); };
         }
 
 
@@ -1212,7 +1320,21 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
         ' border-radius: 5px; padding: 4px 8px; }' +
         '#painel-equipamentos .eq-busca-resultados { display: none; max-height: 180px; overflow-y: auto; border: 1px solid #ccc; border-top: none; background: #fff; position: absolute; width: 100%; z-index: 50; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; }' +
         '#painel-equipamentos .eq-busca-item { padding: 6px 10px; cursor: pointer; font-size: 12px; border-bottom: 1px solid #f0f0f0; }' +
-        '#painel-equipamentos .eq-busca-item:hover { background-color: #f5f5f5; }'
+        '#painel-equipamentos .eq-busca-item:hover { background-color: #f5f5f5; }' +
+        '.eq-arvore-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10005; display: flex; justify-content: center; align-items: center; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }' +
+        '.eq-arvore-modal { background: #fff; border-radius: 8px; width: 90%; max-width: 520px; max-height: 80vh; display: flex; flex-direction: column; padding: 18px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); box-sizing: border-box; }' +
+        '.eq-arvore-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }' +
+        '.eq-arvore-cabecalho h3 { margin: 0; color: #3366ff; font-size: 17px; }' +
+        '.eq-arvore-fechar { background: none; border: none; font-size: 22px; cursor: pointer; color: #888; }' +
+        '#eq-arvore-filtro { width: 100%; box-sizing: border-box; padding: 7px; border: 1px solid #ccc; border-radius: 5px; margin-bottom: 10px; }' +
+        '.eq-arvore-lista { overflow-y: auto; flex: 1; border: 1px solid #eee; border-radius: 5px; padding: 6px; }' +
+        '.eq-arvore-lista ul { list-style: none; margin: 0; padding: 0; }' +
+        '.eq-arvore-lista li > ul { padding-left: 18px; display: none; }' +
+        '.eq-arvore-item.aberto > ul { display: block; }' +
+        '.eq-arvore-linha { display: flex; align-items: center; gap: 4px; padding: 3px 4px; cursor: pointer; border-radius: 4px; font-size: 13px; }' +
+        '.eq-arvore-linha:hover { background: #f0f4ff; }' +
+        '.eq-arvore-toggle { width: 14px; display: inline-block; color: #3366ff; font-size: 11px; cursor: pointer; user-select: none; }' +
+        '.eq-arvore-toggle-vazio { visibility: hidden; }'
       );
 
       const _p = document.createElement('div');
@@ -5976,7 +6098,7 @@ if (campoTipo && campoTipo.parentNode && campoTipo.parentNode.parentNode) {
     }
     async function _0x3a1f53(_0x32c1a7 = ![]) {
       const _0x5ac3b0 = _0x1f2edc
-        , _0x5c0643 = _0x5ac3b0(0x21c);
+        , _0x5c0643 = _0x5ac3b0(0x21c) + '_v2';
       return new Promise((_0x5391d5, _0x23a4e0) => {
         const _0x30252b = _0x5ac3b0
           , _0x5be383 = _0x2012f5();
@@ -6004,13 +6126,14 @@ if (campoTipo && campoTipo.parentNode && campoTipo.parentNode.parentNode) {
     function _0x554d69(_0x402617) {
       const _0x446bf7 = _0x1f2edc
         , _0x85c9c6 = []
-        , _0x2fd7e0 = /\[(.*?)\]\s+(.*?)\s+showData\(".*?",\s*"(\d+)"\)/g
+        , _0x2fd7e0 = /node(\d+)\s+node(\d+)\s+\[(.*?)\]\s+(.*?)\s+showData\(".*?",\s*"(\d+)"\)/g
         , _0x52aa29 = _0x402617[_0x446bf7(0x33a)](_0x2fd7e0);
       for (const _0x55571a of _0x52aa29) {
         _0x85c9c6['push']({
-          'tag': _0x55571a[0x1]
-          , 'nome': _0x55571a[0x2][_0x446bf7(0x247)]()
-          , 'id': _0x55571a[0x3]
+          'tag': _0x55571a[0x3]
+          , 'nome': _0x55571a[0x4][_0x446bf7(0x247)]()
+          , 'id': _0x55571a[0x5]
+          , 'pai': _0x55571a[0x2] === '0' ? '' : _0x55571a[0x2]
         });
       }
       return _0x85c9c6;
