@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TitanSystem 🚀
 // @namespace    http://tampermonkey.net/
-// @version      7.10
+// @version      7.11
 // @description  Otimiza e automatiza o fluxo de trabalho de Ordens de Serviço no sistema Titan, desde a criação até o fechamento.
 // @author       PCM - OTAMERICA
 // @run-at       document-idle
@@ -928,6 +928,16 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
             '<div><label for="titanflow-equip-valor">Valor USD:</label><input type="text" id="titanflow-equip-valor"></div>' +
             '<div class="titanflow-full-width"><label for="titanflow-equip-datos">Dados T\u00e9cnicos:</label>' +
               '<textarea id="titanflow-equip-datos" rows="3" style="width:100%;"></textarea></div>' +
+            '<div class="titanflow-titulo-secao" style="margin-top:6px;"><span>Hierarquia</span></div>' +
+            '<div class="titanflow-full-width" style="position:relative;">' +
+              '<label for="titanflow-equip-padre-busca">Padre (opcional):</label>' +
+              '<input type="text" id="titanflow-equip-padre-busca" placeholder="Buscar por tag ou nome do equipamento pai...">' +
+              '<div id="titanflow-equip-padre-resultados" class="eq-busca-resultados"></div>' +
+              '<div id="titanflow-equip-padre-selecionado" style="display:none;margin-top:6px;font-size:12px;background:#eef3ff;border:1px solid #cfe0ff;border-radius:5px;padding:6px 8px;">' +
+                '<span id="titanflow-equip-padre-texto"></span>' +
+                '<button type="button" id="titanflow-equip-padre-limpar" title="Remover pai" style="float:right;background:none;border:none;color:#c0392b;font-weight:bold;cursor:pointer;">\u2715</button>' +
+              '</div>' +
+            '</div>' +
           '</div>' +
           '<div style="margin-top:12px;">' +
             '<button id="btn-criar-equipamento" style="width:100%;padding:10px;border:none;border-radius:5px;background-color:#27ae60;color:white;font-weight:bold;cursor:pointer;">' +
@@ -994,6 +1004,59 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
         _clonar(_titan.getElementById('key__equipos_tipos__id'), _acha('titanflow-equip-tipo'), 'Selecione o Tipo');
         _status('Pronto.');
 
+        // --- Padre (hierárquico) ------------------------------------
+        // Reaproveita a mesma lista de equipamentos carregada para a OS
+        // MARINE (_0x34e176/_0x3a1f53); se ainda não foi carregada nesta
+        // sessão (usuário entrou direto em Equipamentos), carrega agora.
+        if (_0x34e176.length === 0) {
+          try { await _0x3a1f53(); } catch (_e) { console.error('[TitanSystem][Equipamentos] falha ao carregar lista para o Padre:', _e); }
+        }
+        let _padreId = '';
+        const _padreBusca = _acha('titanflow-equip-padre-busca');
+        const _padreResultados = _acha('titanflow-equip-padre-resultados');
+        const _padreBox = _acha('titanflow-equip-padre-selecionado');
+        const _padreTexto = _acha('titanflow-equip-padre-texto');
+        const _limparPadre = () => {
+          _padreId = '';
+          if (_padreBox) _padreBox.style.display = 'none';
+          if (_padreBusca) _padreBusca.value = '';
+          if (_padreResultados) _padreResultados.style.display = 'none';
+        };
+        const _escolherPadre = (equip) => {
+          _padreId = String(equip.id);
+          _padreTexto.textContent = (equip.tag || '') + ' \u2014 ' + (equip.nome || '');
+          _padreBox.style.display = 'block';
+          _padreBusca.value = '';
+          _padreResultados.style.display = 'none';
+        };
+        if (_acha('titanflow-equip-padre-limpar')) _acha('titanflow-equip-padre-limpar').onclick = _limparPadre;
+        if (_padreBusca) _padreBusca.oninput = () => {
+          const termo = _0x360915(_padreBusca.value.trim());
+          if (!termo) { _padreResultados.style.display = 'none'; return; }
+          const achados = _0x34e176.filter((eq) => _0x360915(eq.nome || '').includes(termo) || _0x360915(eq.tag || '').includes(termo)).slice(0, 20);
+          _padreResultados.innerHTML = achados.length
+            ? achados.map((eq) => '<div class="eq-busca-item" data-id="' + eq.id + '"><b>' + (eq.tag || '') + '</b> ' + (eq.nome || '') + '</div>').join('')
+            : '<div style="padding:8px;color:#888;font-size:12px;">Nenhum equipamento encontrado.</div>';
+          _padreResultados.style.display = 'block';
+        };
+        if (_padreResultados) _padreResultados.onclick = (ev) => {
+          const item = ev.target.closest('.eq-busca-item');
+          if (!item) return;
+          const equip = _0x34e176.find((e) => String(e.id) === item.dataset.id);
+          if (equip) _escolherPadre(equip);
+        };
+        if (!window.__titanflowPadreClickHandlerInstalado) {
+          window.__titanflowPadreClickHandlerInstalado = true;
+          document.addEventListener('click', (ev) => {
+            const busca = document.getElementById('titanflow-equip-padre-busca');
+            const resultados = document.getElementById('titanflow-equip-padre-resultados');
+            if (busca && resultados && !busca.contains(ev.target) && !resultados.contains(ev.target)) {
+              resultados.style.display = 'none';
+            }
+          });
+        }
+
+
         // --- cascata: quem monta a lista de classes é o populate() do TITAN
         // Duas etapas separadas de propósito. Espelhar no painel recria o
         // <select> e portanto zera o que o usuário escolheu, então na hora de
@@ -1022,6 +1085,7 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
             const e = _acha('titanflow-equip-' + s); if (e) e.value = '';
           });
           _classe.disabled = true;
+          if (typeof _limparPadre === 'function') _limparPadre();
           _status('Campos limpos.');
         };
 
@@ -1082,6 +1146,7 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
             por('numero_de_serie', _acha('titanflow-equip-serie').value);
             por('valor_u$s', _acha('titanflow-equip-valor').value);
             por('datos_tecnicos', _acha('titanflow-equip-datos').value);
+            if (_padreId) por('padre_key__equipos__id', _padreId);
 
             const enviar = d.getElementById('bEnviar');
             if (!enviar) throw new Error('Bot\u00e3o de envio do TITAN n\u00e3o encontrado.');
@@ -1101,6 +1166,7 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
             _status('Criado. Confira em Equipamentos > Consultar.', '#27ae60');
             _titan = await _recarregarForm();
             _espelharClasses();
+            if (typeof _limparPadre === 'function') _limparPadre();
           } catch (erro) {
             console.error('[TitanSystem][Equipamentos] Falha ao criar:', erro);
             _0x2786ff('Falha ao criar o equipamento: ' + erro.message, 'error', 8000);
@@ -1143,13 +1209,16 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
         '#painel-equipamentos .eq-linha input[type=checkbox] { width: auto; margin: 0; }' +
         '#painel-equipamentos .eq-linha.bloqueada { color: #aaa; }' +
         '#painel-equipamentos .eq-lista { max-height: 240px; overflow-y: auto; border: 1px solid #ddd;' +
-        ' border-radius: 5px; padding: 4px 8px; }'
+        ' border-radius: 5px; padding: 4px 8px; }' +
+        '#painel-equipamentos .eq-busca-resultados { display: none; max-height: 180px; overflow-y: auto; border: 1px solid #ccc; border-top: none; background: #fff; position: absolute; width: 100%; z-index: 50; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; }' +
+        '#painel-equipamentos .eq-busca-item { padding: 6px 10px; cursor: pointer; font-size: 12px; border-bottom: 1px solid #f0f0f0; }' +
+        '#painel-equipamentos .eq-busca-item:hover { background-color: #f5f5f5; }'
       );
 
       const _p = document.createElement('div');
       _p.id = 'painel-equipamentos';
       _p.innerHTML =
-        '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">' +
+        '<div id="eq-painel-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; cursor:move; user-select:none;" title="Arraste para mover. Duplo clique para restaurar a posi\u00e7\u00e3o.">' +
           '<h3 style="color:#3366ff; margin:0;">TitanSystem Equipamentos \u{1F527}</h3>' +
           '<span style="font-size:12px; color:#888;">v' + GM_info.script.version + '</span>' +
         '</div>' +
@@ -1159,6 +1228,43 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
         '</div>' +
         '<div id="eq-conteudo"></div>';
       document.body.appendChild(_p);
+
+      (function () {
+        const topSalvo = localStorage.getItem('titanflow_equip_panel_top');
+        const leftSalvo = localStorage.getItem('titanflow_equip_panel_left');
+        if (topSalvo && leftSalvo) { _p.style.top = topSalvo; _p.style.left = leftSalvo; }
+        const cabecalho = document.getElementById('eq-painel-header');
+        let arrastando = false, dx = 0, dy = 0;
+        const mover = (ev) => {
+          if (!arrastando) return;
+          const x = Math.max(0, Math.min(ev.clientX - dx, window.innerWidth - _p.offsetWidth));
+          const y = Math.max(0, Math.min(ev.clientY - dy, window.innerHeight - _p.offsetHeight));
+          _p.style.left = x + 'px';
+          _p.style.top = y + 'px';
+        };
+        const soltar = () => {
+          if (!arrastando) return;
+          arrastando = false;
+          document.removeEventListener('mousemove', mover);
+          document.removeEventListener('mouseup', soltar);
+          localStorage.setItem('titanflow_equip_panel_top', _p.style.top);
+          localStorage.setItem('titanflow_equip_panel_left', _p.style.left);
+        };
+        cabecalho.addEventListener('mousedown', (ev) => {
+          ev.preventDefault();
+          arrastando = true;
+          dx = ev.clientX - _p.offsetLeft;
+          dy = ev.clientY - _p.offsetTop;
+          document.addEventListener('mousemove', mover);
+          document.addEventListener('mouseup', soltar);
+        });
+        cabecalho.addEventListener('dblclick', () => {
+          _p.style.top = '40px';
+          _p.style.left = '10px';
+          localStorage.removeItem('titanflow_equip_panel_top');
+          localStorage.removeItem('titanflow_equip_panel_left');
+        });
+      })();
 
       const _cont = document.getElementById('eq-conteudo');
       const _btCriar = document.getElementById('eq-tab-criar');
