@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TitanSystem 🚀
 // @namespace    http://tampermonkey.net/
-// @version      7.13
+// @version      7.14
 // @description  Otimiza e automatiza o fluxo de trabalho de Ordens de Serviço no sistema Titan, desde a criação até o fechamento.
 // @author       PCM - OTAMERICA
 // @run-at       document-idle
@@ -1483,7 +1483,10 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
           '<span style="font-size:12px;font-weight:normal;color:#888;">' + _lista.length + ' na tela</span></div>' +
         (_lista.length === 0
           ? '<p style="font-size:13px;color:#888;">Nenhum equipamento na tela. Fa\u00e7a uma busca em Equipamentos &gt; Consultar e o painel lista aqui.</p>'
-          : '<div class="eq-lista" id="eq-lista"></div>' +
+          : '<label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#333;margin-bottom:4px;cursor:pointer;">' +
+              '<input type="checkbox" id="eq-selecionar-todos" style="width:auto;margin:0;"> Selecionar todos' +
+            '</label>' +
+            '<div class="eq-lista" id="eq-lista"></div>' +
             '<div style="margin-top:10px;">' +
               '<label for="eq-motivo">Motivo da Baixa (obrigat\u00f3rio):</label>' +
               '<textarea id="eq-motivo" rows="3" placeholder="Ex: equipamento sucateado, substitu\u00eddo por ..."></textarea>' +
@@ -1504,6 +1507,16 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
           (eq.podeBaixa ? '' : '<span title="O TITAN n\u00e3o libera baixa para este">\u{1F512}</span>');
         _cx.appendChild(linha);
       }
+
+      const _todos = document.getElementById('eq-selecionar-todos');
+      const _checkboxes = () => [..._cx.querySelectorAll('input[type=checkbox]:not(:disabled)')];
+      _todos.onchange = () => { _checkboxes().forEach((c) => { c.checked = _todos.checked; }); };
+      _cx.addEventListener('change', (ev) => {
+        if (!ev.target.matches('input[type=checkbox]')) return;
+        const cbs = _checkboxes();
+        _todos.checked = cbs.length > 0 && cbs.every((c) => c.checked);
+        _todos.indeterminate = cbs.some((c) => c.checked) && !_todos.checked;
+      });
 
       const _status = (t, cor) => {
         const e = document.getElementById('eq-status');
@@ -1568,7 +1581,10 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
           '<span style="font-size:12px;font-weight:normal;color:#888;">' + _lista.length + ' na tela</span></div>' +
         (_lista.length === 0
           ? '<p style="font-size:13px;color:#888;">Nenhum equipamento na tela. Faça uma busca em Equipamentos &gt; Consultar e o painel lista aqui.</p>'
-          : '<div class="eq-lista" id="eq-lista-prefixo"></div>' +
+          : '<label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#333;margin-bottom:4px;cursor:pointer;">' +
+              '<input type="checkbox" id="eq-selecionar-todos-prefixo" style="width:auto;margin:0;"> Selecionar todos' +
+            '</label>' +
+            '<div class="eq-lista" id="eq-lista-prefixo"></div>' +
             '<div style="margin-top:10px;">' +
               '<label for="eq-prefixo-texto">Prefixo:</label>' +
               '<input type="text" id="eq-prefixo-texto" placeholder="Ex: [DESATIVADO] ">' +
@@ -1596,6 +1612,16 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
           (eq.podeEditar ? '' : '<span title="O TITAN não libera edição para este">🔒</span>');
         _cx.appendChild(linha);
       }
+
+      const _todos = document.getElementById('eq-selecionar-todos-prefixo');
+      const _checkboxes = () => [..._cx.querySelectorAll('input[type=checkbox]:not(:disabled)')];
+      _todos.onchange = () => { _checkboxes().forEach((c) => { c.checked = _todos.checked; }); };
+      _cx.addEventListener('change', (ev) => {
+        if (!ev.target.matches('input[type=checkbox]')) return;
+        const cbs = _checkboxes();
+        _todos.checked = cbs.length > 0 && cbs.every((c) => c.checked);
+        _todos.indeterminate = cbs.some((c) => c.checked) && !_todos.checked;
+      });
 
       const _status = (t, cor) => {
         const e = document.getElementById('eq-status-prefixo');
