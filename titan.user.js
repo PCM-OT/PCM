@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TitanSystem 🚀
 // @namespace    http://tampermonkey.net/
-// @version      7.12
+// @version      7.13
 // @description  Otimiza e automatiza o fluxo de trabalho de Ordens de Serviço no sistema Titan, desde a criação até o fechamento.
 // @author       PCM - OTAMERICA
 // @run-at       document-idle
@@ -1347,6 +1347,8 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
         '<div class="titanflow-tab-container">' +
           '<button id="eq-tab-criar" class="titanflow-tab-btn">Criar</button>' +
           '<button id="eq-tab-baixa" class="titanflow-tab-btn">Baixa</button>' +
+          '<button id="eq-tab-editar" class="titanflow-tab-btn">Editar</button>' +
+          '<button id="eq-tab-prefixo" class="titanflow-tab-btn">Prefixo</button>' +
         '</div>' +
         '<div id="eq-conteudo"></div>';
       document.body.appendChild(_p);
@@ -1391,16 +1393,24 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
       const _cont = document.getElementById('eq-conteudo');
       const _btCriar = document.getElementById('eq-tab-criar');
       const _btBaixa = document.getElementById('eq-tab-baixa');
+      const _btPrefixo = document.getElementById('eq-tab-prefixo');
+      const _btEditar = document.getElementById('eq-tab-editar');
 
       const _abrir = async (qual) => {
         _btCriar.classList.toggle('active', qual === 'criar');
         _btBaixa.classList.toggle('active', qual === 'baixa');
+        _btPrefixo.classList.toggle('active', qual === 'prefixo');
+        _btEditar.classList.toggle('active', qual === 'editar');
         localStorage.setItem('titanflow_equip_ultima_aba', qual);
         if (qual === 'criar') await _abaEquipamentos(_cont);
+        else if (qual === 'prefixo') _abaPrefixoEquipamentos(_cont);
+        else if (qual === 'editar') await _abaEditarEquipamentos(_cont);
         else _abaBaixaEquipamentos(_cont);
       };
       _btCriar.onclick = () => _abrir('criar');
       _btBaixa.onclick = () => _abrir('baixa');
+      _btPrefixo.onclick = () => _abrir('prefixo');
+      _btEditar.onclick = () => _abrir('editar');
       await _abrir(localStorage.getItem('titanflow_equip_ultima_aba') || 'criar');
 
       _criarBotaoAlternarEquipamentos();
@@ -1457,6 +1467,7 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
         achados.push({
           id: m[1],
           podeBaixa: m[2].charAt(1) === '1',
+          podeEditar: m[2].charAt(0) === '1',
           tag: tds[0] ? tds[0].textContent.trim() : m[1],
           nome: tds[2] ? tds[2].textContent.trim() : ''
         });
@@ -1549,6 +1560,117 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
 
     // Abre o formulário de baixa do TITAN num iframe oculto, preenche o motivo
     // e submete. É o mesmo caminho do bot\u00e3o "remover" da p\u00e1gina.
+    function _abaPrefixoEquipamentos(_cont) {
+      const _lista = _lerEquipamentosDaTela();
+
+      _cont.innerHTML =
+        '<div class="titanflow-titulo-secao"><span>Prefixo em Massa</span>' +
+          '<span style="font-size:12px;font-weight:normal;color:#888;">' + _lista.length + ' na tela</span></div>' +
+        (_lista.length === 0
+          ? '<p style="font-size:13px;color:#888;">Nenhum equipamento na tela. Faça uma busca em Equipamentos &gt; Consultar e o painel lista aqui.</p>'
+          : '<div class="eq-lista" id="eq-lista-prefixo"></div>' +
+            '<div style="margin-top:10px;">' +
+              '<label for="eq-prefixo-texto">Prefixo:</label>' +
+              '<input type="text" id="eq-prefixo-texto" placeholder="Ex: [DESATIVADO] ">' +
+            '</div>' +
+            '<div style="margin-top:10px;">' +
+              '<label for="eq-prefixo-modo">Ação:</label>' +
+              '<select id="eq-prefixo-modo">' +
+                '<option value="adicionar">Adicionar prefixo</option>' +
+                '<option value="remover">Remover prefixo</option>' +
+              '</select>' +
+            '</div>' +
+            '<button id="eq-btn-prefixo" style="width:100%;margin-top:10px;padding:10px;border:none;border-radius:5px;' +
+              'background-color:#3366ff;color:white;font-weight:bold;cursor:pointer;">Aplicar aos selecionados</button>' +
+            '<div id="eq-status-prefixo" style="font-size:12px;color:#888;margin-top:8px;text-align:center;"></div>');
+
+      if (_lista.length === 0) return;
+
+      const _cx = document.getElementById('eq-lista-prefixo');
+      for (const eq of _lista) {
+        const linha = document.createElement('label');
+        linha.className = 'eq-linha' + (eq.podeEditar ? '' : ' bloqueada');
+        linha.innerHTML =
+          '<input type="checkbox" value="' + eq.id + '"' + (eq.podeEditar ? '' : ' disabled') + '>' +
+          '<b>' + eq.tag + '</b><span style="flex:1;">' + eq.nome + '</span>' +
+          (eq.podeEditar ? '' : '<span title="O TITAN não libera edição para este">🔒</span>');
+        _cx.appendChild(linha);
+      }
+
+      const _status = (t, cor) => {
+        const e = document.getElementById('eq-status-prefixo');
+        if (e) { e.textContent = t; e.style.color = cor || '#888'; }
+      };
+
+      document.getElementById('eq-btn-prefixo').onclick = async () => {
+        const marcados = [..._cx.querySelectorAll('input[type=checkbox]:checked')].map((c) => c.value);
+        const prefixo = document.getElementById('eq-prefixo-texto').value;
+        const modo = document.getElementById('eq-prefixo-modo').value;
+
+        if (marcados.length === 0) { _0x2786ff('Selecione ao menos um equipamento.', 'warning'); return; }
+        if (!prefixo) {
+          _0x2786ff('Erro: informe o Prefixo.', 'error', 8000);
+          const p = document.getElementById('eq-prefixo-texto');
+          p.style.outline = '3px solid #e74c3c';
+          setTimeout(() => { p.style.outline = ''; }, 4000);
+          p.focus();
+          return;
+        }
+
+        const escolhidos = _lista.filter((e) => marcados.indexOf(e.id) !== -1);
+        const alteracoes = escolhidos.map((eq) => {
+          let novoNome;
+          if (modo === 'adicionar') novoNome = eq.nome.startsWith(prefixo) ? null : (prefixo + eq.nome);
+          else novoNome = eq.nome.startsWith(prefixo) ? eq.nome.slice(prefixo.length) : null;
+          return { eq, novoNome };
+        }).filter((a) => a.novoNome !== null && a.novoNome !== '');
+
+        if (alteracoes.length === 0) {
+          _0x2786ff(modo === 'adicionar'
+            ? 'Todos os selecionados já têm esse prefixo.'
+            : 'Nenhum selecionado começa com esse prefixo.', 'info', 6000);
+          return;
+        }
+
+        const resumo = alteracoes.map((a) => '  • ' + a.eq.tag + ': "' + a.eq.nome + '" -> "' + a.novoNome + '"').join('\n');
+        const ignorados = escolhidos.length - alteracoes.length;
+        if (!confirm((modo === 'adicionar' ? 'Adicionar' : 'Remover') + ' prefixo em ' + alteracoes.length + ' equipamento(s)?\n\n' + resumo +
+            (ignorados > 0 ? '\n\n(' + ignorados + ' selecionado(s) ignorado(s) por o prefixo já não se aplicar)' : ''))) return;
+
+        const botao = document.getElementById('eq-btn-prefixo');
+        botao.disabled = true;
+        _0x56ca07();
+        _0x4e25b2();
+        let ok = 0;
+        const falhas = [];
+
+        for (let i = 0; i < alteracoes.length; i++) {
+          const { eq, novoNome } = alteracoes[i];
+          _status('Alterando ' + (i + 1) + ' de ' + alteracoes.length + ' (' + eq.tag + ')…');
+          try {
+            await _alterarNomeEquipamento(eq.id, novoNome);
+            ok++;
+            _0x43b9e6(i + 1, alteracoes.length, eq.tag + ': "' + eq.nome + '" -> "' + novoNome + '"');
+          } catch (erro) {
+            console.error('[TitanSystem][Equipamentos] falha ao alterar nome de ' + eq.tag + ':', erro);
+            falhas.push(eq.tag);
+            _0x43b9e6(i + 1, alteracoes.length, eq.tag + ': falhou (' + erro.message + ')', true);
+          }
+        }
+
+        botao.disabled = false;
+        if (falhas.length === 0) {
+          _0x1dbb42(ok + ' equipamento(s) alterado(s). Atualizando…', 1500);
+          _status('Concluído.', '#27ae60');
+          setTimeout(() => location.reload(), 1500);
+        } else {
+          _0x1dbb42(ok + ' alterado(s), ' + falhas.length + ' falharam.', 3000);
+          _0x2786ff(ok + ' alterado(s), ' + falhas.length + ' falharam: ' + falhas.join(', '), 'error', 10000);
+          _status('Falhas em: ' + falhas.join(', '), '#e74c3c');
+        }
+      };
+    }
+
     function _darBaixaEquipamento(idReg, motivo) {
       return new Promise((pronto, falhou) => {
         const url = './admin.php?SESID=' + _0x2012f5() +
@@ -1589,6 +1711,480 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
 
         quadro.src = url;
       });
+    }
+// Abre a edição do TITAN (a mesma URL do botão editar nativo) num
+    // iframe oculto e troca só o nome — o resto do registro não é tocado.
+    // Mesmo caminho/idioma de _darBaixaEquipamento (poll -> preenche ->
+    // clica -> poll de novo), adaptado para op=m em vez de subseccion=eliminar.
+    function _alterarNomeEquipamento(idReg, novoNome) {
+      return new Promise((pronto, falhou) => {
+        const url = './admin.php?SESID=' + _0x2012f5() +
+          '&n1=200&n2=202&in=10&seccion=titan_equipos&op=m&id_reg=' + idReg;
+        const quadro = document.createElement('iframe');
+        quadro.style.display = 'none';
+        document.body.appendChild(quadro);
+        const limpar = () => { if (document.body.contains(quadro)) document.body.removeChild(quadro); };
+
+        let voltas = 0;
+        const t = setInterval(() => {
+          voltas++;
+          let d = null;
+          try { d = quadro.contentDocument; } catch (_e) { d = null; }
+          if (d && d.readyState === 'complete' && d.getElementById('formDatos')) {
+            clearInterval(t);
+            const nome = d.getElementById('nombre');
+            const enviar = d.getElementById('bEnviar');
+            if (!nome || !enviar) { limpar(); falhou(new Error('Formulário de edição inesperado para o id ' + idReg + '.')); return; }
+            nome.value = novoNome;
+            // pula required_fields_check/confirm() do TITAN (mesmo caminho de
+            // _darBaixaEquipamento) — só o nome muda, os demais campos
+            // obrigatórios já estão preenchidos no registro existente
+            try { d.forms.formDatos.onsubmit = null; } catch (_e) {}
+            enviar.click();
+            let esperas = 0;
+            const t2 = setInterval(() => {
+              esperas++;
+              let d2 = null;
+              try { d2 = quadro.contentDocument; } catch (_e) { d2 = null; }
+              if (!d2 || !d2.getElementById('formDatos') || esperas > 100) {
+                clearInterval(t2); limpar(); pronto();
+              }
+            }, 100);
+          } else if (voltas > 200) {
+            clearInterval(t); limpar();
+            falhou(new Error('Timeout ao abrir a edição do id ' + idReg + '.'));
+          }
+        }, 100);
+
+        quadro.src = url;
+      });
+    }
+
+    async function _abaEditarEquipamentos(_cont) {
+      const _acha = (id) => document.getElementById(id);
+      const _status = (txto, cor) => {
+        const e = _acha('titanflow-editar-status');
+        if (e) { e.textContent = txto; e.style.color = cor || '#888'; }
+      };
+
+      _cont.innerHTML =
+        '<div class="titanflow-grid">' +
+          '<div class="titanflow-titulo-secao"><span>Editar Equipamento</span></div>' +
+          '<div class="titanflow-full-width" style="position:relative;">' +
+            '<label for="titanflow-editar-busca">Buscar equipamento:</label>' +
+            '<input type="text" id="titanflow-editar-busca" placeholder="Buscar por tag ou nome...">' +
+            '<div id="titanflow-editar-resultados" class="eq-busca-resultados"></div>' +
+          '</div>' +
+        '</div>' +
+        '<div id="titanflow-editar-status" style="font-size:12px;color:#888;margin-top:8px;text-align:center;">Digite para buscar o equipamento.</div>';
+
+      if (_0x34e176.length === 0) {
+        try { await _0x3a1f53(); } catch (_e) { console.error('[TitanSystem][Equipamentos] falha ao carregar lista para editar:', _e); }
+      }
+
+      const _busca = _acha('titanflow-editar-busca');
+      const _resultados = _acha('titanflow-editar-resultados');
+      _busca.oninput = () => {
+        const termo = _0x360915(_busca.value.trim());
+        if (!termo) { _resultados.style.display = 'none'; return; }
+        const achados = _0x34e176.filter((eq) => _0x360915(eq.nome || '').includes(termo) || _0x360915(eq.tag || '').includes(termo)).slice(0, 20);
+        _resultados.innerHTML = achados.length
+          ? achados.map((eq) => '<div class="eq-busca-item" data-id="' + eq.id + '"><b>' + (eq.tag || '') + '</b> ' + (eq.nome || '') + '</div>').join('')
+          : '<div style="padding:8px;color:#888;font-size:12px;">Nenhum equipamento encontrado.</div>';
+        _resultados.style.display = 'block';
+      };
+      _resultados.onclick = (ev) => {
+        const item = ev.target.closest('.eq-busca-item');
+        if (!item) return;
+        const equip = _0x34e176.find((e) => String(e.id) === item.dataset.id);
+        if (equip) _carregarParaEditar(equip.id);
+      };
+      if (!window.__titanflowEditarClickHandlerInstalado) {
+        window.__titanflowEditarClickHandlerInstalado = true;
+        document.addEventListener('click', (ev) => {
+          const b = document.getElementById('titanflow-editar-busca');
+          const r = document.getElementById('titanflow-editar-resultados');
+          if (b && r && !b.contains(ev.target) && !r.contains(ev.target)) r.style.display = 'none';
+        });
+      }
+
+      async function _carregarParaEditar(idReg) {
+        _status('Carregando equipamento…');
+        const antigo = _acha('titanflow-editar-iframe');
+        if (antigo) antigo.remove();
+        const quadro = document.createElement('iframe');
+        quadro.id = 'titanflow-editar-iframe';
+        quadro.style.display = 'none';
+        document.body.appendChild(quadro);
+
+        const docTitan = () => { try { return quadro.contentDocument; } catch (_e) { return null; } };
+        const esperarForm = () => new Promise((ok, falha) => {
+          let voltas = 0;
+          const t = setInterval(() => {
+            voltas++;
+            const d = docTitan();
+            if (d && d.readyState === 'complete' && d.getElementById('formDatos')) { clearInterval(t); ok(d); }
+            else if (voltas > 200) { clearInterval(t); falha(new Error('Timeout ao carregar o equipamento.')); }
+          }, 100);
+        });
+
+        let titanDoc;
+        try {
+          quadro.src = '/albatros/admin.php?SESID=' + _0x2012f5() + '&seccion=titan_equipos&op=m&id_reg=' + idReg + '&in=10&n2=202&n1=200';
+          titanDoc = await esperarForm();
+        } catch (erro) {
+          console.error('[TitanSystem][Equipamentos]', erro);
+          _status('Não foi possível carregar o equipamento. Tente de novo.', '#e74c3c');
+          return;
+        }
+
+        _montarFormularioEdicao(titanDoc, quadro);
+      }
+
+      function _montarFormularioEdicao(_titan, _quadro) {
+        const g = (id) => { const e = _titan.getElementById(id); return e ? e.value : ''; };
+        const classeAtualTexto = (() => {
+          const s = _titan.getElementById('key__equipos_clases__id');
+          return s && s.selectedIndex >= 0 ? s.options[s.selectedIndex].text : '';
+        })();
+
+        _cont.innerHTML =
+          '<div class="titanflow-grid">' +
+            '<div class="titanflow-titulo-secao"><span>Editando: ' + g('tag') + '</span>' +
+              '<button id="titanflow-editar-voltar" title="Voltar à busca">‹ Voltar</button></div>' +
+            '<div><label for="titanflow-editar-tag">Tag:</label><input type="text" id="titanflow-editar-tag"></div>' +
+            '<div><label for="titanflow-editar-nome">Nome:</label><input type="text" id="titanflow-editar-nome"></div>' +
+            '<div class="titanflow-full-width" style="font-size:12px;background:#f8f9fa;border:1px solid #ddd;border-radius:5px;padding:6px 8px;">' +
+              '<b>Classe atual:</b> <span id="titanflow-editar-classe-atual-texto"></span>' +
+              '<button type="button" id="titanflow-editar-trocar-classe" style="float:right;background:none;border:none;color:#3366ff;font-weight:bold;cursor:pointer;">Trocar categoria/classe</button>' +
+            '</div>' +
+            '<div class="titanflow-full-width" id="titanflow-editar-classe-nova-box" style="display:none;">' +
+              '<div><label for="titanflow-editar-cat">Categoria:</label><select id="titanflow-editar-cat"></select></div>' +
+              '<div><label for="titanflow-editar-clase">Classe:</label><select id="titanflow-editar-clase" disabled><option value="">-- Primeiro escolha a Categoria --</option></select></div>' +
+            '</div>' +
+            '<div><label for="titanflow-editar-crit">Criticidade:</label><select id="titanflow-editar-crit"></select></div>' +
+            '<div><label for="titanflow-editar-marca">Marca:</label><input type="text" id="titanflow-editar-marca"></div>' +
+            '<div><label for="titanflow-editar-estado">Estado:</label><select id="titanflow-editar-estado"></select></div>' +
+            '<div><label for="titanflow-editar-tipo">Tipo:</label><select id="titanflow-editar-tipo"></select></div>' +
+            '<div><label for="titanflow-editar-modelo">Modelo:</label><input type="text" id="titanflow-editar-modelo"></div>' +
+            '<div><label for="titanflow-editar-serie">Nº de Série:</label><input type="text" id="titanflow-editar-serie"></div>' +
+            '<div><label for="titanflow-editar-valor">Valor USD:</label><input type="text" id="titanflow-editar-valor"></div>' +
+            '<div class="titanflow-full-width"><label for="titanflow-editar-datos">Dados Técnicos:</label><textarea id="titanflow-editar-datos" rows="3" style="width:100%;"></textarea></div>' +
+            '<div class="titanflow-titulo-secao" style="margin-top:6px;"><span>Hierarquia</span></div>' +
+            '<div class="titanflow-full-width" style="position:relative;">' +
+              '<label for="titanflow-editar-padre-busca">Padre (opcional):</label>' +
+              '<input type="text" id="titanflow-editar-padre-busca" placeholder="Buscar por tag ou nome do equipamento pai...">' +
+              '<button type="button" id="titanflow-editar-padre-arvore" title="Ver a árvore completa de equipamentos" style="margin-top:4px;width:100%;padding:6px;border:1px solid #3366ff;border-radius:5px;background:#fff;color:#3366ff;font-weight:bold;cursor:pointer;font-size:12px;">🌳 Ver árvore completa</button>' +
+              '<div id="titanflow-editar-padre-resultados" class="eq-busca-resultados"></div>' +
+              '<div id="titanflow-editar-padre-selecionado" style="display:none;margin-top:6px;font-size:12px;background:#eef3ff;border:1px solid #cfe0ff;border-radius:5px;padding:6px 8px;">' +
+                '<span id="titanflow-editar-padre-texto"></span>' +
+                '<button type="button" id="titanflow-editar-padre-limpar" title="Remover pai" style="float:right;background:none;border:none;color:#c0392b;font-weight:bold;cursor:pointer;">✕</button>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div style="margin-top:12px;">' +
+            '<button id="btn-salvar-edicao" style="width:100%;padding:10px;border:none;border-radius:5px;background-color:#3366ff;color:white;font-weight:bold;cursor:pointer;">💾 Salvar Alterações</button>' +
+            '<div id="titanflow-editar-status2" style="font-size:12px;color:#888;margin-top:8px;text-align:center;">Pronto.</div>' +
+          '</div>';
+
+        const _status2 = (txto, cor) => {
+          const e = _acha('titanflow-editar-status2');
+          if (e) { e.textContent = txto; e.style.color = cor || '#888'; }
+        };
+
+        _acha('titanflow-editar-voltar').onclick = () => _abaEditarEquipamentos(_cont);
+
+        _acha('titanflow-editar-tag').value = g('tag');
+        _acha('titanflow-editar-nome').value = g('nombre');
+        _acha('titanflow-editar-marca').value = g('marca');
+        _acha('titanflow-editar-modelo').value = g('modelo');
+        _acha('titanflow-editar-serie').value = g('numero_de_serie');
+        _acha('titanflow-editar-valor').value = g('valor_u$s');
+        _acha('titanflow-editar-datos').value = g('datos_tecnicos');
+        _acha('titanflow-editar-classe-atual-texto').textContent = classeAtualTexto || '(nenhuma)';
+
+        const _clonar = (origem, destino, textoVazio) => {
+          if (!origem || !destino) return;
+          destino.innerHTML = '';
+          const vazio = document.createElement('option');
+          vazio.value = ''; vazio.textContent = '-- ' + textoVazio + ' --';
+          destino.appendChild(vazio);
+          for (const o of origem.options) {
+            if (o.value === '') continue;
+            const n = document.createElement('option');
+            n.value = o.value; n.textContent = o.text;
+            destino.appendChild(n);
+          }
+        };
+        const _clonarComValor = (origem, destino, textoVazio) => {
+          _clonar(origem, destino, textoVazio);
+          if (origem) destino.value = origem.value;
+        };
+        _clonarComValor(_titan.getElementById('key__equipos_criticidad__id'), _acha('titanflow-editar-crit'), 'Selecione a Criticidade');
+        _clonarComValor(_titan.getElementById('key__equipos_estados__id'), _acha('titanflow-editar-estado'), 'Selecione o Estado');
+        _clonarComValor(_titan.getElementById('key__equipos_tipos__id'), _acha('titanflow-editar-tipo'), 'Selecione o Tipo');
+
+        // Categoria/Classe só é tocada se o usuário pedir para trocar (ver
+        // nota no topo do patch sobre por que não dá para confiar no valor
+        // atual desses dois campos sem essa ação explícita).
+        let _trocandoClasse = false;
+        const _cat = _acha('titanflow-editar-cat');
+        const _classe = _acha('titanflow-editar-clase');
+        const _popularClassesNoTitan = () => {
+          const alvo = _titan.getElementById('dummy_cat');
+          if (!alvo) return;
+          alvo.value = _cat.value;
+          try {
+            const jan = _quadro.contentWindow;
+            if (jan && typeof jan.populate === 'function') jan.populate(alvo, 'key__equipos_clases__id');
+          } catch (_e) { console.error('[TitanSystem][Equipamentos] populate falhou:', _e); }
+        };
+        _cat.onchange = () => {
+          _popularClassesNoTitan();
+          _clonar(_titan.getElementById('key__equipos_clases__id'), _classe, 'Selecione a Classe');
+          _classe.disabled = !_cat.value;
+        };
+        _acha('titanflow-editar-trocar-classe').onclick = () => {
+          _trocandoClasse = true;
+          _acha('titanflow-editar-classe-nova-box').style.display = 'block';
+          _acha('titanflow-editar-trocar-classe').style.display = 'none';
+          _clonar(_titan.getElementById('dummy_cat'), _cat, 'Selecione a Categoria');
+        };
+
+        // --- Padre: mesma busca da criação, pré-preenchida com o pai atual --
+        // (_0x34e176 já foi garantida carregada por _abaEditarEquipamentos
+        // antes de chegar aqui, então não precisa recarregar)
+        let _padreId = g('padre_key__equipos__id');
+        const _padreBusca = _acha('titanflow-editar-padre-busca');
+        const _padreResultados = _acha('titanflow-editar-padre-resultados');
+        const _padreBox = _acha('titanflow-editar-padre-selecionado');
+        const _padreTexto = _acha('titanflow-editar-padre-texto');
+        const _padreResultInicial = g('padre_key__equipos__id_result');
+        if (_padreId && _padreResultInicial) {
+          _padreTexto.textContent = _padreResultInicial;
+          _padreBox.style.display = 'block';
+        }
+        const _limparPadre = () => {
+          _padreId = '';
+          _padreBox.style.display = 'none';
+          _padreBusca.value = '';
+          _padreResultados.style.display = 'none';
+        };
+        const _escolherPadre = (equip) => {
+          _padreId = String(equip.id);
+          _padreTexto.textContent = (equip.tag || '') + ' — ' + (equip.nome || '');
+          _padreBox.style.display = 'block';
+          _padreBusca.value = '';
+          _padreResultados.style.display = 'none';
+        };
+        _acha('titanflow-editar-padre-limpar').onclick = _limparPadre;
+        _padreBusca.oninput = () => {
+          const termo = _0x360915(_padreBusca.value.trim());
+          if (!termo) { _padreResultados.style.display = 'none'; return; }
+          const achados = _0x34e176.filter((eq) => _0x360915(eq.nome || '').includes(termo) || _0x360915(eq.tag || '').includes(termo)).slice(0, 20);
+          _padreResultados.innerHTML = achados.length
+            ? achados.map((eq) => '<div class="eq-busca-item" data-id="' + eq.id + '"><b>' + (eq.tag || '') + '</b> ' + (eq.nome || '') + '</div>').join('')
+            : '<div style="padding:8px;color:#888;font-size:12px;">Nenhum equipamento encontrado.</div>';
+          _padreResultados.style.display = 'block';
+        };
+        _padreResultados.onclick = (ev) => {
+          const item = ev.target.closest('.eq-busca-item');
+          if (!item) return;
+          const equip = _0x34e176.find((e) => String(e.id) === item.dataset.id);
+          if (equip) _escolherPadre(equip);
+        };
+        if (!window.__titanflowEditarPadreClickHandlerInstalado) {
+          window.__titanflowEditarPadreClickHandlerInstalado = true;
+          document.addEventListener('click', (ev) => {
+            const busca = document.getElementById('titanflow-editar-padre-busca');
+            const resultados = document.getElementById('titanflow-editar-padre-resultados');
+            if (busca && resultados && !busca.contains(ev.target) && !resultados.contains(ev.target)) {
+              resultados.style.display = 'none';
+            }
+          });
+        }
+
+        // --- árvore completa (compartilhada com a aba Criar) -------------
+        const _arvoreFilhos = new Map();
+        for (const _eq of _0x34e176) {
+          const _chave = _eq.pai || '';
+          if (!_arvoreFilhos.has(_chave)) _arvoreFilhos.set(_chave, []);
+          _arvoreFilhos.get(_chave).push(_eq);
+        }
+        const _escaparHtml = (_s) => (_s || '').toString()
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');
+        const _construirArvoreHtml = (_paiId) => {
+          const _filhos = (_arvoreFilhos.get(_paiId) || []).slice()
+            .sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
+          if (!_filhos.length) return '';
+          return '<ul>' + _filhos.map((_eq) => {
+            const _temFilhos = (_arvoreFilhos.get(String(_eq.id)) || []).length > 0;
+            return '<li class="eq-arvore-item">' +
+              '<span class="eq-arvore-linha">' +
+                '<span class="eq-arvore-toggle' + (_temFilhos ? '' : ' eq-arvore-toggle-vazio') + '">▶</span>' +
+                '<span class="eq-arvore-rotulo" data-id="' + _escaparHtml(_eq.id) + '"><b>' + _escaparHtml(_eq.tag) + '</b> ' + _escaparHtml(_eq.nome) + '</span>' +
+              '</span>' +
+              (_temFilhos ? _construirArvoreHtml(String(_eq.id)) : '') +
+              '</li>';
+          }).join('') + '</ul>';
+        };
+        let _arvoreOverlay = document.getElementById('eq-arvore-overlay');
+        if (!_arvoreOverlay) {
+          _arvoreOverlay = document.createElement('div');
+          _arvoreOverlay.id = 'eq-arvore-overlay';
+          _arvoreOverlay.className = 'eq-arvore-overlay';
+          _arvoreOverlay.style.display = 'none';
+          _arvoreOverlay.innerHTML =
+            '<div class="eq-arvore-modal">' +
+              '<div class="eq-arvore-cabecalho">' +
+                '<h3>Árvore de Equipamentos 🌳</h3>' +
+                '<button type="button" id="eq-arvore-fechar" class="eq-arvore-fechar">×</button>' +
+              '</div>' +
+              '<input type="text" id="eq-arvore-filtro" placeholder="Filtrar por tag ou nome...">' +
+              '<div id="eq-arvore-lista" class="eq-arvore-lista"></div>' +
+            '</div>';
+          document.body.appendChild(_arvoreOverlay);
+        }
+        const _arvoreLista = document.getElementById('eq-arvore-lista');
+        const _arvoreFiltro = document.getElementById('eq-arvore-filtro');
+        let _arvoreConstruida = false;
+        const _fecharArvore = () => { _arvoreOverlay.style.display = 'none'; };
+        const _filtrarArvore = (_termoBruto) => {
+          const _termo = _0x360915((_termoBruto || '').trim());
+          const _itens = _arvoreLista.querySelectorAll('.eq-arvore-item');
+          if (!_termo) {
+            _itens.forEach((_li) => {
+              _li.style.display = '';
+              _li.classList.remove('aberto');
+              const _t = _li.querySelector(':scope > .eq-arvore-linha .eq-arvore-toggle');
+              if (_t && !_t.classList.contains('eq-arvore-toggle-vazio')) _t.textContent = '▶';
+            });
+            return;
+          }
+          _itens.forEach((_li) => { _li.style.display = 'none'; });
+          _itens.forEach((_li) => {
+            const _rotulo = _li.querySelector(':scope > .eq-arvore-linha .eq-arvore-rotulo');
+            const _texto = _0x360915(_rotulo ? _rotulo.textContent : '');
+            if (!_texto.includes(_termo)) return;
+            let _atual = _li;
+            while (_atual && _atual.classList && _atual.classList.contains('eq-arvore-item')) {
+              _atual.style.display = '';
+              _atual.classList.add('aberto');
+              const _t = _atual.querySelector(':scope > .eq-arvore-linha .eq-arvore-toggle');
+              if (_t && !_t.classList.contains('eq-arvore-toggle-vazio')) _t.textContent = '▼';
+              _atual = _atual.parentElement && _atual.parentElement.closest('.eq-arvore-item');
+            }
+          });
+        };
+        const _abrirArvore = () => {
+          if (!_arvoreConstruida) {
+            _arvoreLista.innerHTML = _construirArvoreHtml('');
+            _arvoreConstruida = true;
+          }
+          _arvoreOverlay.style.display = 'flex';
+          _arvoreFiltro.value = '';
+          _filtrarArvore('');
+          _arvoreFiltro.focus();
+        };
+        _arvoreLista.onclick = (ev) => {
+          const _toggle = ev.target.closest('.eq-arvore-toggle');
+          if (_toggle && !_toggle.classList.contains('eq-arvore-toggle-vazio')) {
+            const _item = _toggle.closest('.eq-arvore-item');
+            _item.classList.toggle('aberto');
+            _toggle.textContent = _item.classList.contains('aberto') ? '▼' : '▶';
+            return;
+          }
+          const _rotulo = ev.target.closest('.eq-arvore-rotulo');
+          if (_rotulo) {
+            const _equip = _0x34e176.find((_e) => String(_e.id) === _rotulo.dataset.id);
+            if (_equip) { _escolherPadre(_equip); _fecharArvore(); }
+          }
+        };
+        _arvoreFiltro.oninput = () => _filtrarArvore(_arvoreFiltro.value);
+        _arvoreOverlay.onclick = (ev) => { if (ev.target === _arvoreOverlay) _fecharArvore(); };
+        document.getElementById('eq-arvore-fechar').onclick = _fecharArvore;
+        _acha('titanflow-editar-padre-arvore').onclick = (ev) => { ev.preventDefault(); _abrirArvore(); };
+
+        // --- salvar -----------------------------------------------------
+        _acha('btn-salvar-edicao').onclick = async () => {
+          const botao = _acha('btn-salvar-edicao');
+
+          const _campos = [
+            ['titanflow-editar-tag', 'Tag'],
+            ['titanflow-editar-nome', 'Nome'],
+            ['titanflow-editar-crit', 'Criticidade'],
+            ['titanflow-editar-marca', 'Marca'],
+            ['titanflow-editar-estado', 'Estado'],
+            ['titanflow-editar-tipo', 'Tipo'],
+            ['titanflow-editar-modelo', 'Modelo'],
+          ];
+          for (const [id, rotulo] of _campos) {
+            const campo = _acha(id);
+            if (!campo.value) {
+              _0x2786ff('Erro: o campo "' + rotulo + '" é obrigatório.', 'error', 8000);
+              try {
+                campo.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                const antes = campo.style.outline;
+                campo.style.outline = '3px solid #e74c3c';
+                campo.style.outlineOffset = '2px';
+                setTimeout(() => { campo.style.outline = antes; campo.style.outlineOffset = ''; }, 4000);
+                campo.focus({ preventScroll: true });
+              } catch (_e) {}
+              return;
+            }
+          }
+          if (_trocandoClasse && !_classe.value) {
+            _0x2786ff('Erro: escolha a nova Classe, ou clique de novo em Trocar categoria/classe para desistir.', 'error', 8000);
+            return;
+          }
+
+          botao.disabled = true;
+          _status2('Salvando…');
+          try {
+            const por = (id, valor) => { const e = _titan.getElementById(id); if (e) e.value = valor; };
+            por('tag', _acha('titanflow-editar-tag').value);
+            por('nombre', _acha('titanflow-editar-nome').value);
+            por('key__equipos_criticidad__id', _acha('titanflow-editar-crit').value);
+            por('marca', _acha('titanflow-editar-marca').value);
+            por('key__equipos_estados__id', _acha('titanflow-editar-estado').value);
+            por('key__equipos_tipos__id', _acha('titanflow-editar-tipo').value);
+            por('modelo', _acha('titanflow-editar-modelo').value);
+            por('numero_de_serie', _acha('titanflow-editar-serie').value);
+            por('valor_u$s', _acha('titanflow-editar-valor').value);
+            por('datos_tecnicos', _acha('titanflow-editar-datos').value);
+            por('padre_key__equipos__id', _padreId);
+            if (_trocandoClasse && _classe.value) por('key__equipos_clases__id', _classe.value);
+
+            const enviar = _titan.getElementById('bEnviar');
+            if (!enviar) throw new Error('Botão de envio do TITAN não encontrado.');
+            // pula required_fields_check/confirm() do TITAN (mesmo caminho de
+            // _darBaixaEquipamento/_alterarNomeEquipamento) — já validamos
+            // os campos obrigatórios acima, e um confirm() dentro do iframe
+            // oculto travaria a automação sem jeito de responder.
+            try { _titan.forms.formDatos.onsubmit = null; } catch (_e) {}
+            enviar.click();
+
+            await new Promise((ok) => {
+              let voltas = 0;
+              const t = setInterval(() => {
+                voltas++;
+                let doc = null;
+                try { doc = _quadro.contentDocument; } catch (_e) { doc = null; }
+                if (!doc || !doc.getElementById('formDatos') || voltas > 100) { clearInterval(t); ok(); }
+              }, 100);
+            });
+
+            _0x2786ff('Equipamento "' + _acha('titanflow-editar-tag').value + '" atualizado.', 'success', 6000);
+            _status2('Salvo. Volte à busca para editar outro.', '#27ae60');
+          } catch (erro) {
+            console.error('[TitanSystem][Equipamentos] Falha ao editar:', erro);
+            _0x2786ff('Falha ao salvar: ' + erro.message, 'error', 8000);
+            _status2('Falhou. Veja o console (F12).', '#e74c3c');
+          } finally {
+            botao.disabled = false;
+          }
+        };
+      }
     }
 
     function _0x2ebe4b() {
