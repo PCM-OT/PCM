@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TitanSystem 🚀
 // @namespace    http://tampermonkey.net/
-// @version      8.1
+// @version      8.2
 // @description  Otimiza e automatiza o fluxo de trabalho de Ordens de Serviço no sistema Titan, desde a criação até o fechamento.
 // @author       PCM - OTAMERICA
 // @run-at       document-idle
@@ -520,12 +520,13 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
     }
     const _0x121499 = typeof GM_info !== _0x1f2edc(0x559) ? GM_info[_0x1f2edc(0x5ed)]['version'] : _0x1f2edc(0x4e7)
       , _0x3ba919 = {
-        'storageKey': 'ordens_selecionadas'
+        'storageKey': (new URLSearchParams(location.search).get('seccion') === 'titan_trabajos_pedidos' ? 'titanflow_selecao_pedidos' : 'titanflow_selecao_ordenes')
         , 'configStorageKey': _0x1f2edc(0x479)
         , 'textoBotao': _0x1f2edc(0xfb)
         , 'horasPadrao': _0x1f2edc(0x2c3)
         , 'debug': !![]
       };
+    try { localStorage.removeItem('ordens_selecionadas'); } catch (_0xe) {}
 
     // --- INÍCIO DA ETAPA 1 (VERSÃO CORRIGIDA: TABELA 'table_source_personas') ---
 
@@ -3855,7 +3856,13 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
       }), _0x32d52e['addEventListener']('mouseleave', () => {
         const _0x18ae5f = _0x4312b2;
         _0x32d52e[_0x18ae5f(0x39e)][_0x18ae5f(0x102)] = _0x18ae5f(0x37b), _0x32d52e[_0x18ae5f(0x39e)]['filter'] = 'brightness(100%)', _0x32d52e[_0x18ae5f(0x39e)][_0x18ae5f(0x568)] = '0\x202px\x204px\x20rgba(0,0,0,0.15)';
-      }), _0x322bee[_0x4312b2(0x5a0)](_0x2ce98f), _0x322bee['appendChild'](_0x246ef0), _0x322bee['appendChild'](_0x32d52e);
+      });
+      const _0xtelaPedidos = new URLSearchParams(location.search).get('seccion') === 'titan_trabajos_pedidos';
+      _0x322bee.appendChild(_0x2ce98f);
+      if (!_0xtelaPedidos) {
+        _0x322bee.appendChild(_0x246ef0);
+        _0x322bee.appendChild(_0x32d52e);
+      }
       if (_0x4458b3 !== _0x4312b2(0x331)) {
         const _0x55bb4d = document['createElement'](_0x4312b2(0x5e3));
         _0x55bb4d['id'] = _0x4312b2(0x145), _0x55bb4d[_0x4312b2(0x6a2)] = _0x4312b2(0x37c), Object[_0x4312b2(0x48a)](_0x55bb4d[_0x4312b2(0x39e)], {
@@ -3885,7 +3892,7 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
           } catch (_0x1ceb8b) {
             console['error'](_0x2a9068(0x611), _0x1ceb8b), _0x2786ff('Falha\x20ao\x20carregar\x20a\x20lista\x20de\x20equipamentos.', _0x2a9068(0x5fb));
           }
-        }, _0x322bee[_0x4312b2(0x5a0)](_0x55bb4d);
+        }, _0xtelaPedidos && _0x322bee.appendChild(_0x55bb4d);
       }
 
       function _0x1f742f() {
@@ -4710,7 +4717,7 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
         // --- FIM DA MUDANÇA ---
       }
       const _0x4d9c32 = document['createElement'](_0x4312b2(0x5e3));
-      _0x4d9c32[_0x4312b2(0x6a2)] = _0x4312b2(0x139), Object['assign'](_0x4d9c32['style'], {
+      _0x4d9c32[_0x4312b2(0x6a2)] = (new URLSearchParams(location.search).get('seccion') === 'titan_trabajos_pedidos' ? '🔍 Capturar Pedidos Visíveis' : _0x4312b2(0x139)), Object['assign'](_0x4d9c32['style'], {
         'width': '100%'
         , 'backgroundColor': _0x4312b2(0x4e2)
         , 'color': _0x4312b2(0x56f)
@@ -4973,7 +4980,12 @@ function _0x3bcd(_0x98d76a, _0x256af0) {
       function _0x334b85() {
         const _0x1ea60a = _0x4312b2
           , _0x15764 = sessionStorage[_0x1ea60a(0x1fb)](_0x1ea60a(0x2be));
-        switch (_0x15764) {
+        switch ((() => {
+          const _0xp = new URLSearchParams(location.search).get('seccion') === 'titan_trabajos_pedidos';
+          if (_0xp && (_0x15764 === 'reprogramacao' || _0x15764 === 'execucao')) return 'mao_de_obra';
+          if (!_0xp && _0x15764 === 'pedidos') return 'mao_de_obra';
+          return _0x15764;
+        })()) {
         case _0x1ea60a(0x25e):
           _0xf4af04();
           break;
@@ -5555,6 +5567,10 @@ _0x5b2119['click']();
      await Promise.all(_0x1e2efe);
    }
     async function _0x55e3a8(_0x1af47e) {
+      if (new URLSearchParams(location.search).get('seccion') !== 'titan_trabajos_ordenes') {
+        _0x2786ff('Definir Mão de Obra é uma operação de Ordens: use na tela de Ordens. Nada foi feito.', 'error', 0x1770);
+        throw new Error('Definir Mão de Obra fora da tela de Ordens.');
+      }
       const _0x1ec95a = _0x2db1a3.tecnicos.filter(_0x1e80c2 => _0x1e80c2 && _0x1e80c2.trim() !== '');
       if (_0x1ec95a.length === 0) {
         _0x2786ff('Nenhum técnico selecionado. Escolha ao menos um.', 'warning');
@@ -5634,6 +5650,10 @@ _0x5b2119['click']();
       await Promise[_0xb5a9f5(0x152)](_0x3b3677);
     }
     async function _0x5583cc(_0x4a8fe8) {
+      if (new URLSearchParams(location.search).get('seccion') !== 'titan_trabajos_ordenes') {
+        _0x2786ff('Remover Mão de Obra é uma operação de Ordens: use na tela de Ordens. Nada foi feito.', 'error', 0x1770);
+        throw new Error('Remover Mão de Obra fora da tela de Ordens.');
+      }
       if (_0x2b7552.length === 0) {
         _0x2786ff('Nenhuma ordem selecionada para remover a mão de obra!', 'warning');
         return;
@@ -5738,6 +5758,10 @@ _0x5b2119['click']();
       });
     }
     async function _0x1e1e0a(_0x295993) {
+      if (new URLSearchParams(location.search).get('seccion') !== 'titan_trabajos_ordenes') {
+        _0x2786ff('Fechar em Massa é uma operação de Ordens: use na tela de Ordens. Nada foi feito.', 'error', 0x1770);
+        throw new Error('Fechar em Massa fora da tela de Ordens.');
+      }
       const _0x23069d = document.getElementById('select_calificacion').value;
       if (!_0x23069d) {
         _0x2786ff('Por favor, selecione uma "Calificación para fechamento".', 'warning');
@@ -5949,6 +5973,10 @@ _0x5b2119['click']();
       });
     }
     async function _0x2cdb6a(_0xc7246e) {
+      if (new URLSearchParams(location.search).get('seccion') !== 'titan_trabajos_ordenes') {
+        _0x2786ff('Executar em Massa é uma operação de Ordens: use na tela de Ordens. Nada foi feito.', 'error', 0x1770);
+        throw new Error('Executar em Massa fora da tela de Ordens.');
+      }
       const _0x1b8455 = _0x1f2edc;
       _0x5b5dcd = !![];
       const _0x27c0e2 = {
@@ -6030,6 +6058,10 @@ _0x5b2119['click']();
       if (!_0x23e352['ok']) throw new Error(_0x58875f(0x418) + _0x23e352[_0x58875f(0x5a9)] + _0x58875f(0x3f5));
     }
     async function _0x224161(_0x459c40) {
+      if (new URLSearchParams(location.search).get('seccion') !== 'titan_trabajos_ordenes') {
+        _0x2786ff('Ativar em Massa é uma operação de Ordens: use na tela de Ordens. Nada foi feito.', 'error', 0x1770);
+        throw new Error('Ativar em Massa fora da tela de Ordens.');
+      }
       if (_0x5b5dcd) {
         _0x2786ff('Já existe um processamento em andamento.', 'warning');
         return;
@@ -6086,6 +6118,10 @@ _0x5b2119['click']();
       else _0x1a1ae3 > 0 && _0x2786ff('Algumas ordens falharam. A página não será recarregada.', 'error', 0x1770);
     }
     async function _0x1116da(_0x1c30cd) {
+      if (new URLSearchParams(location.search).get('seccion') !== 'titan_trabajos_ordenes') {
+        _0x2786ff('Reprogramar em Massa é uma operação de Ordens: use na tela de Ordens. Nada foi feito.', 'error', 0x1770);
+        throw new Error('Reprogramar em Massa fora da tela de Ordens.');
+      }
       const _0x50791a = _0x1f2edc
         , _0x17fb61 = _0x5e0ee9(document[_0x50791a(0x405)](_0x50791a(0x51a))['value'])
         , _0x3a3192 = document['getElementById']('input-causa')[_0x50791a(0x554)]
@@ -6156,62 +6192,78 @@ _0x5b2119['click']();
     }
 
     function _0x507d86(_0x207a01, _0x5f24f8) {
+      const CANCELAMENTO_CONFIRMADO_PELO_TITAN = /modificad/i;
       return new Promise((_0x9e5c40, _0x2d8dc1) => {
-        const _0x2743b = _0x3bcd
-          , _0x36f2f9 = document['createElement'](_0x2743b(0x49f));
-        _0x36f2f9[_0x2743b(0x39e)]['display'] = _0x2743b(0x24f);
-        const _0x785356 = () => document[_0x2743b(0x4c5)][_0x2743b(0xfd)](_0x36f2f9) && document[_0x2743b(0x4c5)][_0x2743b(0x1d5)](_0x36f2f9);
-        let _0x489021 = 0x0;
-        const _0x15a24f = 0xc8
-          , _0x4f362b = 0x4b
+        const _0x36f2f9 = document.createElement('iframe');
+        _0x36f2f9.style.display = 'none';
+        const _0x785356 = () => document.body.contains(_0x36f2f9) && document.body.removeChild(_0x36f2f9);
+        let _0x489021 = 0;
+        const _0x15a24f = 200
+          , _0x4f362b = 75
           , _0xfb4d81 = setInterval(() => {
-            const _0x36255f = _0x2743b;
             _0x489021++;
             try {
-              const _0x31f45d = _0x36f2f9[_0x36255f(0x306)];
-              if (_0x31f45d && _0x31f45d[_0x36255f(0x3dd)] === _0x36255f(0x1dd)) {
-                const _0x2910b5 = _0x31f45d[_0x36255f(0x405)]('formDatos')
-                  , _0x506f7b = _0x31f45d['getElementById'](_0x36255f(0x67c));
+              const _0x31f45d = _0x36f2f9.contentDocument;
+              if (_0x31f45d && _0x31f45d.readyState === 'complete') {
+                const _0x2910b5 = _0x31f45d.getElementById('formDatos')
+                  , _0x506f7b = _0x31f45d.getElementById('bEnviar');
                 if (_0x2910b5 && _0x506f7b) {
                   clearInterval(_0xfb4d81);
-                  const _0x2b15d8 = _0x31f45d['getElementById'](_0x36255f(0x381));
-                  if (!_0x2b15d8) return _0x785356(), _0x2d8dc1(new Error(_0x36255f(0x5a7)));
-                  _0x2b15d8['value'] = _0x5f24f8, _0x506f7b[_0x36255f(0x338)]();
-                  let _0x1f1ef2 = 0x0;
+                  const _0x2b15d8 = _0x31f45d.getElementById('cancelacion_causa');
+                  if (!_0x2b15d8) return _0x785356(), _0x2d8dc1(new Error("Campo 'Razón' (cancelacion_causa) não encontrado no formulário."));
+                  _0x2b15d8.value = _0x5f24f8;
+                  _0x506f7b.click();
+                  let _0x1f1ef2 = 0;
                   const _0x4898d7 = setInterval(() => {
-                    const _0x558de7 = _0x36255f;
                     _0x1f1ef2++;
+                    const _0xfim = (_0xerro) => {
+                      clearInterval(_0x4898d7);
+                      _0x785356();
+                      _0xerro ? _0x2d8dc1(_0xerro) : _0x9e5c40();
+                    };
                     try {
-                      if (!_0x36f2f9['contentDocument']?.[_0x558de7(0x405)](_0x558de7(0x227))) clearInterval(_0x4898d7), _0x785356(), _0x9e5c40();
-                      else _0x1f1ef2 > _0x15a24f && (clearInterval(_0x4898d7), _0x785356(), _0x2d8dc1(new Error(_0x558de7(0x444))));
-                    } catch (_0x221565) {
-                      clearInterval(_0x4898d7), _0x785356(), _0x9e5c40();
+                      const _0xdoc = _0x36f2f9.contentDocument;
+                      const _0xavisoErro = _0xdoc && _0xdoc.getElementById('informacion_mensaje_aux');
+                      if (_0xavisoErro && _0xavisoErro.style.display === 'block') return _0xfim(new Error('O TITAN recusou o cancelamento: ' + (_0xavisoErro.textContent || '').trim()));
+                      if (_0xdoc && _0xdoc.readyState === 'complete' && !_0xdoc.getElementById('formDatos')) {
+                        const _0xmsg = _0xdoc.getElementById('informacion_mensaje');
+                        if (_0xmsg && CANCELAMENTO_CONFIRMADO_PELO_TITAN.test(_0xmsg.textContent || '')) return _0xfim();
+                        return _0xfim(new Error('O TITAN não confirmou o cancelamento: a página seguinte veio sem o aviso de dados modificados.'));
+                      }
+                      if (_0x1f1ef2 > _0x15a24f) _0xfim(new Error('Timeout: A página não mudou após o clique em Salvar.'));
+                    } catch (_0xe) {
+                      _0xfim(new Error('Não foi possível conferir o resultado do cancelamento: ' + _0xe.message));
                     }
                   }, _0x4f362b);
                   return;
                 }
               }
-              _0x489021 > _0x15a24f && (clearInterval(_0xfb4d81), _0x785356(), _0x2d8dc1(new Error(_0x36255f(0x584))));
+              _0x489021 > _0x15a24f && (clearInterval(_0xfb4d81), _0x785356(), _0x2d8dc1(new Error('Timeout: Formulário de cancelamento não foi encontrado.')));
             } catch (_0x3aba25) {
               clearInterval(_0xfb4d81), _0x785356(), _0x2d8dc1(_0x3aba25);
             }
           }, _0x4f362b);
-        _0x36f2f9[_0x2743b(0x176)] = () => {
-          const _0x3f74df = _0x2743b;
-          clearInterval(_0xfb4d81), _0x785356(), _0x2d8dc1(new Error(_0x3f74df(0x478)));
-        }, document[_0x2743b(0x4c5)][_0x2743b(0x5a0)](_0x36f2f9), _0x36f2f9[_0x2743b(0x465)] = _0x207a01;
+        _0x36f2f9.onerror = () => {
+          clearInterval(_0xfb4d81), _0x785356(), _0x2d8dc1(new Error('Falha de rede ao carregar o iframe de cancelamento.'));
+        };
+        document.body.appendChild(_0x36f2f9);
+        _0x36f2f9.src = _0x207a01;
       });
     }
     async function _0x497030(_0x5bbcf8) {
-      const _0x4036e4 = await _0x15e7d4('Cancelar Ordens em Massa 🛑', 'Digite a causa do cancelamento que será aplicada a todas as ' + _0x2b7552.length + ' ordens selecionadas.', 'Ex: Duplicidade, solicitação do cliente, etc.');
+      const _0x33584d = new URLSearchParams(window.location.search)
+        , _0xehPedidos = _0x33584d.get('seccion') === 'titan_trabajos_pedidos'
+        , _0xsecaoCancelar = _0xehPedidos ? 'titan_trabajos_pedidos' : 'titan_trabajos_ordenes'
+        , _0xitens = _0xehPedidos ? 'pedidos' : 'ordens'
+        , _0xitem = _0xehPedidos ? 'pedido' : 'ordem';
+      const _0x4036e4 = await _0x15e7d4(_0xehPedidos ? 'Cancelar Pedidos em Massa 🛑' : 'Cancelar Ordens em Massa 🛑', 'Digite a causa do cancelamento que será aplicada ' + (_0xehPedidos ? 'a todos os ' : 'a todas as ') + _0x2b7552.length + ' ' + _0xitens + (_0xehPedidos ? ' selecionados.' : ' selecionadas.'), 'Ex: Duplicidade, solicitação do cliente, etc.');
       if (_0x4036e4 === null || _0x4036e4.trim() === '') {
         _0x2786ff('Cancelamento abortado. A causa é obrigatória.', 'warning');
         throw new Error('Operação cancelada pelo usuário.');
       }
       _0x5b5dcd = true;
       const CONCORRENCIA_ORDENS = 3;
-      const _0x33584d = new URLSearchParams(window.location.search)
-        , _0x5a7e0c = _0x33584d.get('SESID')
+      const _0x5a7e0c = _0x33584d.get('SESID')
         , _0x214b2a = _0x33584d.get('n1')
         , _0x28c54d = _0x33584d.get('n2')
         , _0x7236b6 = _0x33584d.get('in');
@@ -6226,19 +6278,19 @@ _0x5b2119['click']();
         , _0xa98364 = 0
         , _0x260442 = []
         , _0xcursorCancelar = 0;
-      _0x2786ff('🚀 Iniciando cancelamento para ' + _0x4c558e + ' ordens...', 'info');
+      _0x2786ff('🚀 Iniciando cancelamento para ' + _0x4c558e + ' ' + _0xitens + '...', 'info');
       const _0xtrabalhadorCancelar = async () => {
         while (_0xcursorCancelar < _0x4c558e) {
           if (!_0x5b5dcd) break;
           const _0xminhaVez = _0xcursorCancelar++;
           const _0x262fc7 = _0x527376[_0xminhaVez];
-          const _0x2e4613 = '/albatros/admin.php?SESID=' + _0x5a7e0c + '&n1=' + _0x214b2a + '&n2=' + _0x28c54d + '&in=' + _0x7236b6 + '&seccion=titan_trabajos_ordenes&subseccion=cancelar&op=m&id_reg=' + _0x262fc7;
+          const _0x2e4613 = '/albatros/admin.php?SESID=' + _0x5a7e0c + '&n1=' + _0x214b2a + '&n2=' + _0x28c54d + '&in=' + _0x7236b6 + '&seccion=' + _0xsecaoCancelar + '&subseccion=cancelar&op=m&id_reg=' + _0x262fc7;
           try {
             await _0x507d86(_0x2e4613, _0x4036e4);
             _0x260442.push(_0x262fc7);
           } catch (_0x27531a) {
             _0xa98364++;
-            console.error('Falha ao cancelar ordem ' + _0x262fc7 + ':', _0x27531a);
+            console.error('Falha ao cancelar ' + _0xitem + ' ' + _0x262fc7 + ':', _0x27531a);
           }
           _0x38701d++;
           if (_0x5bbcf8) _0x5bbcf8(_0x38701d / _0x4c558e);
@@ -6249,12 +6301,12 @@ _0x5b2119['click']();
       await Promise.all(_0xpoolCancelar);
       if (!_0x5b5dcd) _0x2786ff('Processo interrompido.', 'warning');
       _0x5b5dcd = false, _0x2b7552 = _0x2b7552.filter(_0x45cd78 => !_0x260442.includes(_0x45cd78)), _0x13d195(), _0x5f5540();
-      const _0x226334 = 'Concluído! ' + _0x260442.length + ' ordens canceladas. ' + _0xa98364 + ' falharam.';
+      const _0x226334 = 'Concluído! ' + _0x260442.length + ' ' + _0xitens + (_0xehPedidos ? ' cancelados. ' : ' canceladas. ') + _0xa98364 + ' falharam.';
       _0x2786ff(_0x226334, _0xa98364 > 0 ? 'warning' : 'success', 0x1770);
       if (_0xa98364 === 0 && _0x4c558e > 0) _0x2786ff('Sucesso total! Atualizando a página...', 'info'), setTimeout(() => {
         location.reload();
       }, 0x1f4);
-      else _0xa98364 > 0 && _0x2786ff('Algumas ordens falharam. A página não será recarregada.', 'error', 0x1770);
+      else _0xa98364 > 0 && _0x2786ff('Alguns cancelamentos falharam (detalhes no console, F12). A página não será recarregada.', 'error', 0x1770);
     }
 
     function _0x4158d4(_0x20b1ca, _0x38e819, _0x68c2b1) {
@@ -6431,6 +6483,10 @@ _0x3b9341[_0x10eb8e(0x405)](_0x10eb8e(0x67c))['click']();
       });
     }
     async function _0x3872cf(_0x32bb8a) {
+      if (new URLSearchParams(location.search).get('seccion') !== 'titan_trabajos_pedidos') {
+        _0x2786ff('Emitir em Massa é uma operação de Pedidos: use na tela de Pedidos. Nada foi feito.', 'error', 0x1770);
+        throw new Error('Emitir em Massa fora da tela de Pedidos.');
+      }
       const _0x508842 = {
           'estadoPlan': document.getElementById('emissao-estado-plan').value
           , 'especialidades': []
@@ -6690,6 +6746,23 @@ if (campoTipo && campoTipo.parentNode && campoTipo.parentNode.parentNode) {
         const _0x3b4e41 = document[_0x485e1d(0x405)](_0x485e1d(0x637));
         _0xc0586b(document['getElementById'](_0x485e1d(0x1b5)), _0x3b4e41, _0x3872cf);
       };
+      (() => {
+        const _0xcont = document.getElementById('titanflow-emissao-container');
+        if (!_0xcont || document.getElementById('btn-cancelar-pedidos') || !(new URLSearchParams(location.search).get('seccion') === 'titan_trabajos_pedidos')) return;
+        const _0xbt = document.createElement('button');
+        _0xbt.id = 'btn-cancelar-pedidos';
+        _0xbt.className = 'full-width-btn action-btn titanflow-action-btn';
+        _0xbt.innerHTML = '<span class="btn-text">🛑 Cancelar Pedidos</span><span class="btn-progress-fill"></span>';
+        Object.assign(_0xbt.style, { backgroundColor: '#dc3545', color: 'white', marginLeft: '5px' });
+        _0xcont.appendChild(_0xbt);
+        _0xbt.onclick = () => {
+          if (_0x2b7552.length === 0) {
+            _0x2786ff('Nenhum pedido selecionado para cancelar!', 'warning');
+            return;
+          }
+          _0xc0586b(_0xbt, _0xcont, _0x497030);
+        };
+      })();
       const _0x55d0b7 = () => {
         const _0x4d870c = _0x2ae6ee
           , _0x3359ca = {
