@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TitanSystem 🚀
 // @namespace    http://tampermonkey.net/
-// @version      7.14
+// @version      7.16
 // @description  Otimiza e automatiza o fluxo de trabalho de Ordens de Serviço no sistema Titan, desde a criação até o fechamento.
 // @author       PCM - OTAMERICA
 // @run-at       document-idle
@@ -5555,38 +5555,45 @@ _0x5b2119['click']();
      await Promise.all(_0x1e2efe);
    }
     async function _0x55e3a8(_0x1af47e) {
-      const _0x5f3250 = _0x1f2edc
-        , _0x1ec95a = _0x2db1a3[_0x5f3250(0x3d4)][_0x5f3250(0x5fd)](_0x1e80c2 => _0x1e80c2 && _0x1e80c2[_0x5f3250(0x247)]() !== '');
-      if (_0x1ec95a[_0x5f3250(0x570)] === 0x0) {
-        _0x2786ff('Nenhum\x20técnico\x20selecionado.\x20Escolha\x20ao\x20menos\x20um.', 'warning');
+      const _0x1ec95a = _0x2db1a3.tecnicos.filter(_0x1e80c2 => _0x1e80c2 && _0x1e80c2.trim() !== '');
+      if (_0x1ec95a.length === 0) {
+        _0x2786ff('Nenhum técnico selecionado. Escolha ao menos um.', 'warning');
         return;
       }
-      _0x5b5dcd = !![];
+      _0x5b5dcd = true;
+      const CONCORRENCIA_ORDENS = 3;
       const _0x2a0ccc = [..._0x2b7552]
-        , _0x49d8a5 = _0x2a0ccc['length'];
-      let _0x3919b3 = 0x0
-        , _0x120a7b = 0x0;
+        , _0x49d8a5 = _0x2a0ccc.length;
+      let _0x3919b3 = 0
+        , _0x120a7b = 0
+        , _0xcursorMaoObra = 0;
       const _0x44fbad = []
         , _0x467368 = _0x2012f5();
-      _0x2786ff('🚀\x20Iniciando\x20adição\x20de\x20mão\x20de\x20obra\x20para\x20' + _0x49d8a5 + _0x5f3250(0x69c), _0x5f3250(0x503));
-      for (const _0x25531e of _0x2a0ccc) {
-        if (!_0x5b5dcd) {
-          _0x2786ff(_0x5f3250(0x1de), 'warning');
-          break;
+      _0x2786ff('🚀 Iniciando adição de mão de obra para ' + _0x49d8a5 + ' ordens...', 'info');
+      const _0xtrabalhadorMaoObra = async () => {
+        while (_0xcursorMaoObra < _0x49d8a5) {
+          if (!_0x5b5dcd) break;
+          const _0xminhaVez = _0xcursorMaoObra++;
+          const _0x25531e = _0x2a0ccc[_0xminhaVez];
+          try {
+            await _0x5a90c8(_0x25531e, _0x467368);
+            _0x44fbad.push(_0x25531e);
+          } catch (_0x5f16ea) {
+            _0x120a7b++;
+            console.error('Falha ao adicionar mão de obra na ordem ' + _0x25531e + ':', _0x5f16ea);
+          }
+          _0x3919b3++;
+          if (_0x1af47e) _0x1af47e(_0x3919b3 / _0x49d8a5);
         }
-        try {
-          await _0x5a90c8(_0x25531e, _0x467368), _0x44fbad['push'](_0x25531e);
-        } catch (_0x5f16ea) {
-          _0x120a7b++, console[_0x5f3250(0x5fb)](_0x5f3250(0x29e) + _0x25531e + ':', _0x5f16ea);
-        }
-        _0x3919b3++;
-        if (_0x1af47e) _0x1af47e(_0x3919b3 / _0x49d8a5);
-      }
-      _0x5b5dcd = ![];
-      const _0xe23b8f = _0x5f3250(0x65c) + _0x44fbad['length'] + '\x20ordens\x20processadas.\x20' + _0x120a7b + _0x5f3250(0x173);
-      _0x2786ff(_0xe23b8f, _0x120a7b > 0x0 ? _0x5f3250(0x65a) : 'success', 0x1770), _0x120a7b === 0x0 && _0x49d8a5 > 0x0 && (_0x2786ff(_0x5f3250(0x691), 'info'), setTimeout(() => {
-        const _0x40d775 = _0x5f3250;
-        location[_0x40d775(0x683)]();
+      };
+      const _0xpoolMaoObra = [];
+      for (let _0xi = 0; _0xi < Math.min(CONCORRENCIA_ORDENS, _0x49d8a5); _0xi++) _0xpoolMaoObra.push(_0xtrabalhadorMaoObra());
+      await Promise.all(_0xpoolMaoObra);
+      if (!_0x5b5dcd) _0x2786ff('Processo interrompido.', 'warning');
+      _0x5b5dcd = false;
+      const _0xe23b8f = 'Concluído! ' + _0x44fbad.length + ' ordens processadas. ' + _0x120a7b + ' falharam.';
+      _0x2786ff(_0xe23b8f, _0x120a7b > 0 ? 'warning' : 'success', 0x1770), _0x120a7b === 0 && _0x49d8a5 > 0 && (_0x2786ff('Sucesso total! Atualizando a página...', 'info'), setTimeout(() => {
+        location.reload();
       }, 0x1f4));
     }
     async function _0x591d76(_0x178f21, _0x1393ee, _0x30db03, _0x48e07e, _0x9a4ec2) {
@@ -5627,40 +5634,48 @@ _0x5b2119['click']();
       await Promise[_0xb5a9f5(0x152)](_0x3b3677);
     }
     async function _0x5583cc(_0x4a8fe8) {
-      const _0x589737 = _0x1f2edc;
-      if (_0x2b7552['length'] === 0x0) {
-        _0x2786ff('Nenhuma\x20ordem\x20selecionada\x20para\x20remover\x20a\x20mão\x20de\x20obra!', _0x589737(0x65a));
+      if (_0x2b7552.length === 0) {
+        _0x2786ff('Nenhuma ordem selecionada para remover a mão de obra!', 'warning');
         return;
       }
-      _0x5b5dcd = !![];
+      _0x5b5dcd = true;
+      const CONCORRENCIA_ORDENS = 3;
       const _0x2c8838 = [..._0x2b7552]
-        , _0x4df10a = _0x2c8838[_0x589737(0x570)];
-      let _0x3d71eb = 0x0
-        , _0x237678 = 0x0;
+        , _0x4df10a = _0x2c8838.length;
+      let _0x3d71eb = 0
+        , _0x237678 = 0
+        , _0xcursorRemoverMaoObra = 0;
       const _0x2f5c86 = []
-        , _0x21ebf3 = new URLSearchParams(window[_0x589737(0x298)][_0x589737(0x467)])
-        , _0x4ff13e = _0x21ebf3[_0x589737(0x47f)](_0x589737(0x656))
-        , _0x388ad2 = _0x21ebf3['get']('n1')
-        , _0x13d684 = _0x21ebf3[_0x589737(0x47f)]('n2')
-        , _0x581df6 = _0x21ebf3['get']('in');
-      _0x2786ff(_0x589737(0x1da) + _0x4df10a + _0x589737(0x69c), _0x589737(0x503));
-      for (const _0x23fe7b of _0x2c8838) {
-        if (!_0x5b5dcd) {
-          _0x2786ff(_0x589737(0x1de), _0x589737(0x65a));
-          break;
+        , _0x21ebf3 = new URLSearchParams(window.location.search)
+        , _0x4ff13e = _0x21ebf3.get('SESID')
+        , _0x388ad2 = _0x21ebf3.get('n1')
+        , _0x13d684 = _0x21ebf3.get('n2')
+        , _0x581df6 = _0x21ebf3.get('in');
+      _0x2786ff('🚀 Iniciando remoção de mão de obra para ' + _0x4df10a + ' ordens...', 'info');
+      const _0xtrabalhadorRemoverMaoObra = async () => {
+        while (_0xcursorRemoverMaoObra < _0x4df10a) {
+          if (!_0x5b5dcd) break;
+          const _0xminhaVez = _0xcursorRemoverMaoObra++;
+          const _0x23fe7b = _0x2c8838[_0xminhaVez];
+          try {
+            await _0x591d76(_0x23fe7b, _0x4ff13e, _0x388ad2, _0x13d684, _0x581df6);
+            _0x2f5c86.push(_0x23fe7b);
+          } catch (_0xdf4d17) {
+            _0x237678++;
+            console.error('Falha ao remover mão de obra da ordem ' + _0x23fe7b + ':', _0xdf4d17);
+          }
+          _0x3d71eb++;
+          if (_0x4a8fe8) _0x4a8fe8(_0x3d71eb / _0x4df10a);
         }
-        try {
-          await _0x591d76(_0x23fe7b, _0x4ff13e, _0x388ad2, _0x13d684, _0x581df6), _0x2f5c86[_0x589737(0x2d4)](_0x23fe7b);
-        } catch (_0xdf4d17) {
-          _0x237678++, console[_0x589737(0x5fb)](_0x589737(0x37a) + _0x23fe7b + ':', _0xdf4d17);
-        }
-        _0x3d71eb++;
-        if (_0x4a8fe8) _0x4a8fe8(_0x3d71eb / _0x4df10a);
-      }
-      _0x5b5dcd = ![];
-      const _0x1938c5 = _0x589737(0x317) + _0x2f5c86['length'] + _0x589737(0x3f3) + _0x237678 + '\x20falharam.';
-      _0x2786ff(_0x1938c5, _0x237678 > 0x0 ? _0x589737(0x65a) : _0x589737(0x3a1), 0x1770), _0x237678 === 0x0 && _0x4df10a > 0x0 && (_0x2786ff(_0x589737(0x691), _0x589737(0x503)), setTimeout(() => {
-        location['reload']();
+      };
+      const _0xpoolRemoverMaoObra = [];
+      for (let _0xi = 0; _0xi < Math.min(CONCORRENCIA_ORDENS, _0x4df10a); _0xi++) _0xpoolRemoverMaoObra.push(_0xtrabalhadorRemoverMaoObra());
+      await Promise.all(_0xpoolRemoverMaoObra);
+      if (!_0x5b5dcd) _0x2786ff('Processo interrompido.', 'warning');
+      _0x5b5dcd = false;
+      const _0x1938c5 = 'Concluído! Mão de obra de ' + _0x2f5c86.length + ' ordens removida. ' + _0x237678 + ' falharam.';
+      _0x2786ff(_0x1938c5, _0x237678 > 0 ? 'warning' : 'success', 0x1770), _0x237678 === 0 && _0x4df10a > 0 && (_0x2786ff('Sucesso total! Atualizando a página...', 'info'), setTimeout(() => {
+        location.reload();
       }, 0x1f4));
     }
 
@@ -5723,43 +5738,51 @@ _0x5b2119['click']();
       });
     }
     async function _0x1e1e0a(_0x295993) {
-      const _0x102c1d = _0x1f2edc
-        , _0x23069d = document[_0x102c1d(0x405)](_0x102c1d(0x527))['value'];
+      const _0x23069d = document.getElementById('select_calificacion').value;
       if (!_0x23069d) {
-        _0x2786ff(_0x102c1d(0x3f2), _0x102c1d(0x65a));
-        throw new Error(_0x102c1d(0x644));
+        _0x2786ff('Por favor, selecione uma "Calificación para fechamento".', 'warning');
+        throw new Error('Qualificação não selecionada.');
       }
-      _0x5b5dcd = !![];
+      _0x5b5dcd = true;
+      const CONCORRENCIA_FECHAMENTO = 3;
       const _0x50c3c1 = [..._0x2b7552]
-        , _0x4b3e5c = _0x50c3c1[_0x102c1d(0x570)];
+        , _0x4b3e5c = _0x50c3c1.length;
       let _0x5c7660 = []
-        , _0x5e23c3 = [];
-      _0x2786ff(_0x102c1d(0x693) + _0x4b3e5c + _0x102c1d(0x69c), 'info');
-      for (let _0x5a5934 = 0x0; _0x5a5934 < _0x4b3e5c; _0x5a5934++) {
-        if (!_0x5b5dcd) {
-          _0x2786ff('Processo\x20interrompido\x20pelo\x20usuário.', _0x102c1d(0x65a));
-          break;
+        , _0x5e23c3 = []
+        , _0xconcluidas = 0
+        , _0xcursor = 0;
+      _0x2786ff('🚀 Iniciando fechamento (até ' + CONCORRENCIA_FECHAMENTO + ' em paralelo) para ' + _0x4b3e5c + ' ordens...', 'info');
+
+      const _0xtrabalhadorFechamento = async () => {
+        while (_0xcursor < _0x4b3e5c) {
+          if (!_0x5b5dcd) break;
+          const _0xminhaVez = _0xcursor++;
+          const _0x5c8fcc = _0x50c3c1[_0xminhaVez];
+          try {
+            await _0x2ab23f(_0x5c8fcc, _0x23069d);
+            _0x5c7660.push(_0x5c8fcc);
+          } catch (_0x324e2d) {
+            _0x5e23c3.push(_0x5c8fcc);
+            console.error('Falha ao fechar ordem ' + _0x5c8fcc + ':', _0x324e2d);
+          }
+          _0xconcluidas++;
+          _0x295993 && _0x295993(_0xconcluidas / _0x4b3e5c);
         }
-        const _0x5c8fcc = _0x50c3c1[_0x5a5934];
-        if (!_0x5b5dcd) {
-          _0x2786ff(_0x102c1d(0x1e1), _0x102c1d(0x65a));
-          break;
-        }
-        try {
-          await _0x2ab23f(_0x5c8fcc, _0x23069d), _0x5c7660[_0x102c1d(0x2d4)](_0x5c8fcc);
-        } catch (_0x324e2d) {
-          _0x5e23c3['push'](_0x5c8fcc), console[_0x102c1d(0x5fb)](_0x102c1d(0x556) + _0x5c8fcc + ':', _0x324e2d);
-        }
-        _0x295993 && _0x295993((_0x5a5934 + 0x1) / _0x4b3e5c);
-      }
-      if (_0x295993) _0x295993(0x1);
-      _0x5b5dcd = ![], _0x2b7552 = _0x2b7552[_0x102c1d(0x5fd)](_0x16f828 => !_0x5c7660[_0x102c1d(0x1c9)](_0x16f828)), _0x13d195(), _0x5f5540();
-      const _0x4b625e = _0x5c7660[_0x102c1d(0x570)] + _0x102c1d(0x470) + _0x5e23c3['length'] + _0x102c1d(0x173);
-      _0x2786ff(_0x4b625e, _0x5e23c3['length'] > 0x0 ? _0x102c1d(0x65a) : 'success', 0x1770);
-      if (_0x5e23c3[_0x102c1d(0x570)] === 0x0 && _0x4b3e5c > 0x0) _0x2786ff(_0x102c1d(0x691), _0x102c1d(0x503)), setTimeout(() => {
-        location['reload']();
+      };
+
+      const _0xpoolFechamento = [];
+      for (let _0xi = 0; _0xi < Math.min(CONCORRENCIA_FECHAMENTO, _0x4b3e5c); _0xi++) _0xpoolFechamento.push(_0xtrabalhadorFechamento());
+      await Promise.all(_0xpoolFechamento);
+
+      if (!_0x5b5dcd) _0x2786ff('Processo interrompido pelo usuário.', 'warning');
+      if (_0x295993) _0x295993(1);
+      _0x5b5dcd = false, _0x2b7552 = _0x2b7552.filter(_0x16f828 => !_0x5c7660.includes(_0x16f828)), _0x13d195(), _0x5f5540();
+      const _0x4b625e = _0x5c7660.length + ' ordens fechadas. ' + _0x5e23c3.length + ' falharam.';
+      _0x2786ff(_0x4b625e, _0x5e23c3.length > 0 ? 'warning' : 'success', 0x1770);
+      if (_0x5e23c3.length === 0 && _0x4b3e5c > 0) _0x2786ff('Sucesso total! Atualizando a página...', 'info'), setTimeout(() => {
+        location.reload();
       }, 0x1f4);
-      else _0x5e23c3[_0x102c1d(0x570)] > 0x0 && _0x2786ff(_0x102c1d(0x55b), _0x102c1d(0x5fb), 0x1770);
+      else _0x5e23c3.length > 0 && _0x2786ff('Algumas ordens falharam. A página não será recarregada.', 'error', 0x1770);
     }
 
     function _0x2630a5(_0xd937c2) {
@@ -6007,49 +6030,60 @@ _0x5b2119['click']();
       if (!_0x23e352['ok']) throw new Error(_0x58875f(0x418) + _0x23e352[_0x58875f(0x5a9)] + _0x58875f(0x3f5));
     }
     async function _0x224161(_0x459c40) {
-      const _0x3129e1 = _0x1f2edc;
       if (_0x5b5dcd) {
-        _0x2786ff(_0x3129e1(0x625), _0x3129e1(0x65a));
+        _0x2786ff('Já existe um processamento em andamento.', 'warning');
         return;
       }
-      _0x5b5dcd = !![];
-      const _0x14c9c5 = new URLSearchParams(window['location']['search'])
-        , _0x25ee28 = _0x14c9c5[_0x3129e1(0x47f)](_0x3129e1(0x656))
-        , _0x4db118 = _0x14c9c5[_0x3129e1(0x47f)]('n1')
-        , _0x1bcff2 = _0x14c9c5[_0x3129e1(0x47f)]('n2')
-        , _0x47772b = _0x14c9c5[_0x3129e1(0x47f)]('in');
+      _0x5b5dcd = true;
+      const CONCORRENCIA_ORDENS = 3;
+      const _0x14c9c5 = new URLSearchParams(window.location.search)
+        , _0x25ee28 = _0x14c9c5.get('SESID')
+        , _0x4db118 = _0x14c9c5.get('n1')
+        , _0x1bcff2 = _0x14c9c5.get('n2')
+        , _0x47772b = _0x14c9c5.get('in');
       if (!_0x25ee28 || !_0x4db118 || !_0x1bcff2 || !_0x47772b) {
-        _0x5b5dcd = ![];
-        throw new Error(_0x3129e1(0x3b7));
+        _0x5b5dcd = false;
+        throw new Error('Parâmetros de navegação não encontrados na URL.');
       }
       const _0x4f376f = new Date()
-        , _0x14394e = String(_0x4f376f['getDate']())[_0x3129e1(0x44e)](0x2, '0')
-        , _0xb9ddb4 = String(_0x4f376f['getMonth']() + 0x1)[_0x3129e1(0x44e)](0x2, '0')
-        , _0x35107b = _0x4f376f[_0x3129e1(0x5c7)]()
+        , _0x14394e = String(_0x4f376f.getDate()).padStart(2, '0')
+        , _0xb9ddb4 = String(_0x4f376f.getMonth() + 1).padStart(2, '0')
+        , _0x35107b = _0x4f376f.getFullYear()
         , _0x24ec9b = _0x14394e + '/' + _0xb9ddb4 + '/' + _0x35107b
         , _0x499fec = [..._0x2b7552]
-        , _0x126aac = _0x499fec[_0x3129e1(0x570)];
-      let _0x5167af = 0x0
-        , _0x1a1ae3 = 0x0;
+        , _0x126aac = _0x499fec.length;
+      let _0x5167af = 0
+        , _0x1a1ae3 = 0
+        , _0xcursorAtivar = 0;
       const _0x469da6 = [];
-      _0x2786ff(_0x3129e1(0x2a8) + _0x126aac + _0x3129e1(0x412), _0x3129e1(0x503));
-      for (const _0x573e4b of _0x499fec) {
-        if (!_0x5b5dcd) break;
-        try {
-          await _0x1ca2cd(_0x573e4b, _0x25ee28, _0x4db118, _0x1bcff2, _0x47772b, _0x24ec9b), _0x469da6[_0x3129e1(0x2d4)](_0x573e4b);
-        } catch (_0x28c2b8) {
-          _0x1a1ae3++, console[_0x3129e1(0x5fb)](_0x3129e1(0x259) + _0x573e4b + ':', _0x28c2b8);
+      _0x2786ff('🚀 Iniciando ativação para ' + _0x126aac + ' ordens em fila...', 'info');
+      const _0xtrabalhadorAtivar = async () => {
+        while (_0xcursorAtivar < _0x126aac) {
+          if (!_0x5b5dcd) break;
+          const _0xminhaVez = _0xcursorAtivar++;
+          const _0x573e4b = _0x499fec[_0xminhaVez];
+          try {
+            await _0x1ca2cd(_0x573e4b, _0x25ee28, _0x4db118, _0x1bcff2, _0x47772b, _0x24ec9b);
+            _0x469da6.push(_0x573e4b);
+          } catch (_0x28c2b8) {
+            _0x1a1ae3++;
+            console.error('Falha ao ativar ordem ' + _0x573e4b + ':', _0x28c2b8);
+          }
+          _0x5167af++;
+          if (_0x459c40) _0x459c40(_0x5167af / _0x126aac);
         }
-        _0x5167af++;
-        if (_0x459c40) _0x459c40(_0x5167af / _0x126aac);
-      }
-      _0x5b5dcd = ![];
-      const _0x1ac4ba = _0x3129e1(0x65c) + _0x469da6[_0x3129e1(0x570)] + '\x20ordens\x20ativadas\x20com\x20sucesso.\x20' + _0x1a1ae3 + _0x3129e1(0x173);
-      _0x2786ff(_0x1ac4ba, _0x1a1ae3 > 0x0 ? 'warning' : _0x3129e1(0x3a1), 0x1770);
-      if (_0x1a1ae3 === 0x0 && _0x126aac > 0x0) _0x2786ff('Sucesso\x20total!\x20Atualizando\x20a\x20página...', _0x3129e1(0x503)), setTimeout(() => {
-        location['reload']();
+      };
+      const _0xpoolAtivar = [];
+      for (let _0xi = 0; _0xi < Math.min(CONCORRENCIA_ORDENS, _0x126aac); _0xi++) _0xpoolAtivar.push(_0xtrabalhadorAtivar());
+      await Promise.all(_0xpoolAtivar);
+      if (!_0x5b5dcd) _0x2786ff('Processo interrompido.', 'warning');
+      _0x5b5dcd = false;
+      const _0x1ac4ba = 'Concluído! ' + _0x469da6.length + ' ordens ativadas com sucesso. ' + _0x1a1ae3 + ' falharam.';
+      _0x2786ff(_0x1ac4ba, _0x1a1ae3 > 0 ? 'warning' : 'success', 0x1770);
+      if (_0x1a1ae3 === 0 && _0x126aac > 0) _0x2786ff('Sucesso total! Atualizando a página...', 'info'), setTimeout(() => {
+        location.reload();
       }, 0x1f4);
-      else _0x1a1ae3 > 0x0 && _0x2786ff(_0x3129e1(0x55b), 'error', 0x1770);
+      else _0x1a1ae3 > 0 && _0x2786ff('Algumas ordens falharam. A página não será recarregada.', 'error', 0x1770);
     }
     async function _0x1116da(_0x1c30cd) {
       const _0x50791a = _0x1f2edc
@@ -6169,47 +6203,58 @@ _0x5b2119['click']();
       });
     }
     async function _0x497030(_0x5bbcf8) {
-      const _0x8fabe3 = _0x1f2edc
-        , _0x4036e4 = await _0x15e7d4('Cancelar\x20Ordens\x20em\x20Massa\x20🛑', _0x8fabe3(0x50b) + _0x2b7552['length'] + '\x20ordens\x20selecionadas.', _0x8fabe3(0x64d));
-      if (_0x4036e4 === null || _0x4036e4[_0x8fabe3(0x247)]() === '') {
-        _0x2786ff(_0x8fabe3(0xf7), _0x8fabe3(0x65a));
-        throw new Error('Operação\x20cancelada\x20pelo\x20usuário.');
+      const _0x4036e4 = await _0x15e7d4('Cancelar Ordens em Massa 🛑', 'Digite a causa do cancelamento que será aplicada a todas as ' + _0x2b7552.length + ' ordens selecionadas.', 'Ex: Duplicidade, solicitação do cliente, etc.');
+      if (_0x4036e4 === null || _0x4036e4.trim() === '') {
+        _0x2786ff('Cancelamento abortado. A causa é obrigatória.', 'warning');
+        throw new Error('Operação cancelada pelo usuário.');
       }
-      _0x5b5dcd = !![];
-      const _0x33584d = new URLSearchParams(window[_0x8fabe3(0x298)][_0x8fabe3(0x467)])
-        , _0x5a7e0c = _0x33584d[_0x8fabe3(0x47f)](_0x8fabe3(0x656))
-        , _0x214b2a = _0x33584d['get']('n1')
-        , _0x28c54d = _0x33584d[_0x8fabe3(0x47f)]('n2')
-        , _0x7236b6 = _0x33584d[_0x8fabe3(0x47f)]('in');
+      _0x5b5dcd = true;
+      const CONCORRENCIA_ORDENS = 3;
+      const _0x33584d = new URLSearchParams(window.location.search)
+        , _0x5a7e0c = _0x33584d.get('SESID')
+        , _0x214b2a = _0x33584d.get('n1')
+        , _0x28c54d = _0x33584d.get('n2')
+        , _0x7236b6 = _0x33584d.get('in');
       if (!_0x5a7e0c || !_0x214b2a || !_0x28c54d || !_0x7236b6) {
-        _0x5b5dcd = ![], _0x2786ff(_0x8fabe3(0x494), _0x8fabe3(0x5fb));
-        throw new Error(_0x8fabe3(0x1f3));
+        _0x5b5dcd = false;
+        _0x2786ff('Erro: Parâmetros de navegação não encontrados.', 'error');
+        throw new Error('Parâmetros de navegação não encontrados.');
       }
       const _0x527376 = [..._0x2b7552]
-        , _0x4c558e = _0x527376[_0x8fabe3(0x570)];
-      let _0x38701d = 0x0
-        , _0xa98364 = 0x0
-        , _0x260442 = [];
-      _0x2786ff(_0x8fabe3(0x4af) + _0x4c558e + _0x8fabe3(0x69c), 'info');
-      for (const _0x262fc7 of _0x527376) {
-        if (!_0x5b5dcd) break;
-        const _0x2e4613 = _0x8fabe3(0x283) + _0x5a7e0c + '&n1=' + _0x214b2a + _0x8fabe3(0x383) + _0x28c54d + _0x8fabe3(0x58b) + _0x7236b6 + _0x8fabe3(0x4e1) + _0x262fc7;
-        try {
-          await _0x507d86(_0x2e4613, _0x4036e4), _0x260442[_0x8fabe3(0x2d4)](_0x262fc7);
-        } catch (_0x27531a) {
-          _0xa98364++, console[_0x8fabe3(0x5fb)](_0x8fabe3(0x3e8) + _0x262fc7 + ':', _0x27531a);
+        , _0x4c558e = _0x527376.length;
+      let _0x38701d = 0
+        , _0xa98364 = 0
+        , _0x260442 = []
+        , _0xcursorCancelar = 0;
+      _0x2786ff('🚀 Iniciando cancelamento para ' + _0x4c558e + ' ordens...', 'info');
+      const _0xtrabalhadorCancelar = async () => {
+        while (_0xcursorCancelar < _0x4c558e) {
+          if (!_0x5b5dcd) break;
+          const _0xminhaVez = _0xcursorCancelar++;
+          const _0x262fc7 = _0x527376[_0xminhaVez];
+          const _0x2e4613 = '/albatros/admin.php?SESID=' + _0x5a7e0c + '&n1=' + _0x214b2a + '&n2=' + _0x28c54d + '&in=' + _0x7236b6 + '&seccion=titan_trabajos_ordenes&subseccion=cancelar&op=m&id_reg=' + _0x262fc7;
+          try {
+            await _0x507d86(_0x2e4613, _0x4036e4);
+            _0x260442.push(_0x262fc7);
+          } catch (_0x27531a) {
+            _0xa98364++;
+            console.error('Falha ao cancelar ordem ' + _0x262fc7 + ':', _0x27531a);
+          }
+          _0x38701d++;
+          if (_0x5bbcf8) _0x5bbcf8(_0x38701d / _0x4c558e);
         }
-        _0x38701d++;
-        if (_0x5bbcf8) _0x5bbcf8(_0x38701d / _0x4c558e);
-      }
-      _0x5b5dcd = ![], _0x2b7552 = _0x2b7552['filter'](_0x45cd78 => !_0x260442[_0x8fabe3(0x1c9)](_0x45cd78)), _0x13d195(), _0x5f5540();
-      const _0x226334 = _0x8fabe3(0x65c) + _0x260442[_0x8fabe3(0x570)] + _0x8fabe3(0x65e) + _0xa98364 + _0x8fabe3(0x173);
-      _0x2786ff(_0x226334, _0xa98364 > 0x0 ? _0x8fabe3(0x65a) : _0x8fabe3(0x3a1), 0x1770);
-      if (_0xa98364 === 0x0 && _0x4c558e > 0x0) _0x2786ff(_0x8fabe3(0x691), _0x8fabe3(0x503)), setTimeout(() => {
-        const _0x123e06 = _0x8fabe3;
-        location[_0x123e06(0x683)]();
+      };
+      const _0xpoolCancelar = [];
+      for (let _0xi = 0; _0xi < Math.min(CONCORRENCIA_ORDENS, _0x4c558e); _0xi++) _0xpoolCancelar.push(_0xtrabalhadorCancelar());
+      await Promise.all(_0xpoolCancelar);
+      if (!_0x5b5dcd) _0x2786ff('Processo interrompido.', 'warning');
+      _0x5b5dcd = false, _0x2b7552 = _0x2b7552.filter(_0x45cd78 => !_0x260442.includes(_0x45cd78)), _0x13d195(), _0x5f5540();
+      const _0x226334 = 'Concluído! ' + _0x260442.length + ' ordens canceladas. ' + _0xa98364 + ' falharam.';
+      _0x2786ff(_0x226334, _0xa98364 > 0 ? 'warning' : 'success', 0x1770);
+      if (_0xa98364 === 0 && _0x4c558e > 0) _0x2786ff('Sucesso total! Atualizando a página...', 'info'), setTimeout(() => {
+        location.reload();
       }, 0x1f4);
-      else _0xa98364 > 0x0 && _0x2786ff(_0x8fabe3(0x55b), _0x8fabe3(0x5fb), 0x1770);
+      else _0xa98364 > 0 && _0x2786ff('Algumas ordens falharam. A página não será recarregada.', 'error', 0x1770);
     }
 
     function _0x4158d4(_0x20b1ca, _0x38e819, _0x68c2b1) {
@@ -6386,44 +6431,51 @@ _0x3b9341[_0x10eb8e(0x405)](_0x10eb8e(0x67c))['click']();
       });
     }
     async function _0x3872cf(_0x32bb8a) {
-      const _0x4f2495 = _0x1f2edc
-        , _0x508842 = {
-          'estadoPlan': document[_0x4f2495(0x405)](_0x4f2495(0x43a))[_0x4f2495(0x554)]
+      const _0x508842 = {
+          'estadoPlan': document.getElementById('emissao-estado-plan').value
           , 'especialidades': []
         }
-        , _0x362f55 = document[_0x4f2495(0x405)](_0x4f2495(0x4b2))[_0x4f2495(0x554)];
-      _0x362f55 && _0x508842['especialidades']['push']({
+        , _0x362f55 = document.getElementById('esp-id-1').value;
+      _0x362f55 && _0x508842.especialidades.push({
         'id': _0x362f55
-        , 'pessoas': document[_0x4f2495(0x405)](_0x4f2495(0x112))[_0x4f2495(0x554)] || '0'
-        , 'horas': document[_0x4f2495(0x405)](_0x4f2495(0x108))[_0x4f2495(0x554)] || '0'
+        , 'pessoas': document.getElementById('esp-pessoas-1').value || '0'
+        , 'horas': document.getElementById('esp-horas-1').value || '0'
       });
-      _0x5b5dcd = !![];
+      _0x5b5dcd = true;
+      const CONCORRENCIA_ORDENS = 3;
       const _0x3dd970 = [..._0x2b7552];
-      let _0x485905 = 0x0
-        , _0x443de4 = 0x0;
-      const _0x141187 = _0x3dd970[_0x4f2495(0x570)];
-      for (const _0x17cd34 of _0x3dd970) {
-        if (!_0x5b5dcd) break;
-        try {
-          await _0x19fdd7(_0x17cd34, _0x508842);
-          const _0xc3687b = (_0x443de4 + 0x1) / _0x141187;
-          if (_0x32bb8a) _0x32bb8a(_0xc3687b);
-        } catch (_0x121f0c) {
-          _0x485905++, console[_0x4f2495(0x5fb)](_0x4f2495(0x232) + _0x17cd34 + ':', _0x121f0c);
-          const _0x480833 = (_0x443de4 + 0x1) / _0x141187;
-          if (_0x32bb8a) _0x32bb8a(_0x480833);
+      let _0x485905 = 0
+        , _0x443de4 = 0
+        , _0xcursorEmitir = 0;
+      const _0x141187 = _0x3dd970.length;
+      _0x2786ff('🚀 Iniciando emissão para ' + _0x141187 + ' ordens...', 'info');
+      const _0xtrabalhadorEmitir = async () => {
+        while (_0xcursorEmitir < _0x141187) {
+          if (!_0x5b5dcd) break;
+          const _0xminhaVez = _0xcursorEmitir++;
+          const _0x17cd34 = _0x3dd970[_0xminhaVez];
+          try {
+            await _0x19fdd7(_0x17cd34, _0x508842);
+          } catch (_0x121f0c) {
+            _0x485905++;
+            console.error('Falha ao emitir ordem ' + _0x17cd34 + ':', _0x121f0c);
+          }
+          _0x443de4++;
+          if (_0x32bb8a) _0x32bb8a(_0x443de4 / _0x141187);
         }
-        _0x443de4++;
-      }
-      _0x5b5dcd = ![], _0x13d195(), _0x5f5540();
-      const _0x3e37d5 = _0x4f2495(0x65c) + (_0x141187 - _0x485905) + _0x4f2495(0x495) + _0x485905 + _0x4f2495(0x173);
-      _0x2786ff(_0x3e37d5, _0x485905 > 0x0 ? _0x4f2495(0x65a) : _0x4f2495(0x3a1), 0x1770);
-      if (_0x485905 === 0x0 && _0x141187 > 0x0) {
+      };
+      const _0xpoolEmitir = [];
+      for (let _0xi = 0; _0xi < Math.min(CONCORRENCIA_ORDENS, _0x141187); _0xi++) _0xpoolEmitir.push(_0xtrabalhadorEmitir());
+      await Promise.all(_0xpoolEmitir);
+      if (!_0x5b5dcd) _0x2786ff('Processo interrompido.', 'warning');
+      _0x5b5dcd = false, _0x13d195(), _0x5f5540();
+      const _0x3e37d5 = 'Concluído! ' + (_0x141187 - _0x485905) + ' ordens emitidas. ' + _0x485905 + ' falharam.';
+      _0x2786ff(_0x3e37d5, _0x485905 > 0 ? 'warning' : 'success', 0x1770);
+      if (_0x485905 === 0 && _0x141187 > 0) {
         _0x2b7552 = [], _0x13d195(), _0x5f5540();
-        const _0x5bb99b = document[_0x4f2495(0x405)]('ordens-input');
-        _0x5bb99b && (_0x5bb99b[_0x4f2495(0x554)] = '', _0x5bb99b[_0x4f2495(0x410)](new Event(_0x4f2495(0x3d9)))), _0x2786ff('Atualizando\x20a\x20página\x20em\x20500ms...', _0x4f2495(0x503), 0x3e8), setTimeout(() => {
-          const _0xbd24b3 = _0x4f2495;
-          location[_0xbd24b3(0x683)]();
+        const _0x5bb99b = document.getElementById('ordens-input');
+        _0x5bb99b && (_0x5bb99b.value = '', _0x5bb99b.dispatchEvent(new Event('input'))), _0x2786ff('Atualizando a página em 500ms...', 'info', 0x3e8), setTimeout(() => {
+          location.reload();
         }, 0x1f4);
       }
     }
